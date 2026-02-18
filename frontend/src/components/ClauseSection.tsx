@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import type { Clause } from '../types/report';
 import { StatusBadge } from './StatusBadge';
 import { SeverityBadge } from './SeverityBadge';
@@ -9,59 +10,72 @@ export function ClauseSection({ clause }: { clause: Clause }) {
   const panelId = `panel-${clause.clauseId}`;
 
   return (
-    <div className="border border-gray-200 rounded-lg">
+    <div className="glass-light rounded-xl overflow-hidden">
       <h3>
         <button
           id={headingId}
           aria-expanded={expanded}
           aria-controls={panelId}
           onClick={() => setExpanded(!expanded)}
-          className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left hover:bg-gray-50 focus:outline-2 focus:outline-offset-[-2px] focus:outline-blue-600 rounded-lg"
+          className="flex w-full items-center justify-between gap-3 px-5 py-4 text-left hover:bg-white/[0.03] focus:outline-2 focus:outline-offset-[-2px] focus:outline-brand-400 transition-colors"
         >
-          <span className="flex items-center gap-3">
+          <span className="flex items-center gap-3 min-w-0">
             <StatusBadge status={clause.status} />
-            <span className="font-semibold text-gray-900">
+            <span className="font-mono text-sm font-semibold text-brand-300 shrink-0">
               {clause.clauseId}
             </span>
-            <span className="text-gray-700">{clause.title}</span>
+            <span className="text-slate-300 text-sm truncate">{clause.title}</span>
           </span>
-          <span aria-hidden="true" className="text-gray-400 text-lg">
-            {expanded ? '\u25B2' : '\u25BC'}
-          </span>
+          <svg
+            className={`h-4 w-4 shrink-0 text-slate-500 transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            aria-hidden="true"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+          </svg>
         </button>
       </h3>
 
-      {expanded && (
-        <div
-          id={panelId}
-          role="region"
-          aria-labelledby={headingId}
-          className="border-t border-gray-200 px-4 py-3 space-y-3"
-        >
-          {clause.findings.map((finding, i) => (
-            <div key={i} className="space-y-1">
-              <div className="flex items-start gap-2">
-                <SeverityBadge severity={finding.severity} />
-                <p className="text-gray-800 text-sm">{finding.description}</p>
-              </div>
-              {finding.evidence && (
-                <pre className="bg-gray-100 rounded p-2 text-xs text-gray-700 overflow-x-auto">
-                  <code>{finding.evidence}</code>
-                </pre>
+      <AnimatePresence initial={false}>
+        {expanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            id={panelId}
+            role="region"
+            aria-labelledby={headingId}
+          >
+            <div className="border-t border-slate-700/50 px-5 py-4 space-y-3">
+              {clause.findings.map((finding, i) => (
+                <div key={i} className="space-y-1.5">
+                  <div className="flex items-start gap-2">
+                    <SeverityBadge severity={finding.severity} />
+                    <p className="text-slate-300 text-sm leading-relaxed">{finding.description}</p>
+                  </div>
+                  {finding.evidence && (
+                    <pre className="bg-slate-900/80 rounded-lg p-3 text-xs text-slate-400 overflow-x-auto font-mono border border-slate-800">
+                      <code>{finding.evidence}</code>
+                    </pre>
+                  )}
+                </div>
+              ))}
+
+              {clause.recommendation && (
+                <div className="bg-brand-500/10 border border-brand-500/20 rounded-lg p-4 mt-3">
+                  <p className="text-xs font-semibold text-brand-300 mb-1 uppercase tracking-wide">
+                    Recommendation
+                  </p>
+                  <p className="text-sm text-slate-300 leading-relaxed">{clause.recommendation}</p>
+                </div>
               )}
             </div>
-          ))}
-
-          {clause.recommendation && (
-            <div className="bg-blue-50 border border-blue-200 rounded p-3 mt-2">
-              <p className="text-sm font-semibold text-blue-900 mb-1">
-                Recommendation
-              </p>
-              <p className="text-sm text-blue-800">{clause.recommendation}</p>
-            </div>
-          )}
-        </div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -2,37 +2,37 @@ import type { Clause } from '../types/report';
 
 const config: Record<
   Clause['status'],
-  { label: string; icon: string; className: string }
+  { label: string; className: string; dotClass: string }
 > = {
   pass: {
     label: 'Pass',
-    icon: '\u2713',
-    className: 'bg-green-100 text-green-800 border-green-300',
+    className: 'bg-green-500/10 text-green-400 ring-green-500/20',
+    dotClass: 'bg-green-400',
   },
   fail: {
     label: 'Fail',
-    icon: '\u2717',
-    className: 'bg-red-100 text-red-800 border-red-300',
+    className: 'bg-red-500/10 text-red-400 ring-red-500/20',
+    dotClass: 'bg-red-400',
   },
   needs_review: {
-    label: 'Needs Review',
-    icon: '?',
-    className: 'bg-yellow-100 text-yellow-800 border-yellow-300',
+    label: 'Review',
+    className: 'bg-yellow-500/10 text-yellow-400 ring-yellow-500/20',
+    dotClass: 'bg-yellow-400',
   },
   not_applicable: {
     label: 'N/A',
-    icon: '\u2014',
-    className: 'bg-gray-100 text-gray-600 border-gray-300',
+    className: 'bg-slate-500/10 text-slate-400 ring-slate-500/20',
+    dotClass: 'bg-slate-500',
   },
 };
 
 export function StatusBadge({ status }: { status: Clause['status'] }) {
-  const { label, icon, className } = config[status];
+  const { label, className, dotClass } = config[status];
   return (
     <span
-      className={`inline-flex items-center gap-1 rounded border px-2 py-0.5 text-sm font-semibold ${className}`}
+      className={`inline-flex items-center gap-1.5 rounded-full ring-1 ring-inset px-2.5 py-0.5 text-xs font-semibold ${className}`}
     >
-      <span aria-hidden="true">{icon}</span>
+      <span aria-hidden="true" className={`h-1.5 w-1.5 rounded-full ${dotClass}`} />
       {label}
     </span>
   );
