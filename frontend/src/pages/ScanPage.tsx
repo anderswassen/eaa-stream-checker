@@ -1,7 +1,15 @@
-import { useState, useRef, type FormEvent } from 'react';
+import { useState, useRef, useEffect, useCallback, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { startScan, getScanStatus } from '../api/client';
+
+function normalizeUrl(value: string): string {
+  const trimmed = value.trim();
+  if (!/^https?:\/\//i.test(trimmed)) {
+    return `https://${trimmed}`;
+  }
+  return trimmed;
+}
 
 function isValidUrl(value: string): boolean {
   try {
@@ -10,6 +18,63 @@ function isValidUrl(value: string): boolean {
   } catch {
     return false;
   }
+}
+
+const exampleUrls = [
+  'svtplay.se',
+  'tv4play.se',
+  'dplay.se',
+  'hockeyettan.se',
+  'viaplay.se',
+  'cmore.se',
+];
+
+function useTypingPlaceholder(urls: string[], typingSpeed = 60, pauseMs = 2000) {
+  const [text, setText] = useState('');
+  const [urlIndex, setUrlIndex] = useState(0);
+  const [charIndex, setCharIndex] = useState(0);
+  const [deleting, setDeleting] = useState(false);
+  const active = useRef(true);
+
+  useEffect(() => {
+    active.current = true;
+    return () => { active.current = false; };
+  }, []);
+
+  useEffect(() => {
+    const current = urls[urlIndex];
+    let timeout: ReturnType<typeof setTimeout>;
+
+    if (!deleting) {
+      if (charIndex < current.length) {
+        timeout = setTimeout(() => {
+          if (!active.current) return;
+          setText(current.slice(0, charIndex + 1));
+          setCharIndex((c) => c + 1);
+        }, typingSpeed);
+      } else {
+        timeout = setTimeout(() => {
+          if (!active.current) return;
+          setDeleting(true);
+        }, pauseMs);
+      }
+    } else {
+      if (charIndex > 0) {
+        timeout = setTimeout(() => {
+          if (!active.current) return;
+          setText(current.slice(0, charIndex - 1));
+          setCharIndex((c) => c - 1);
+        }, typingSpeed / 2);
+      } else {
+        setDeleting(false);
+        setUrlIndex((i) => (i + 1) % urls.length);
+      }
+    }
+
+    return () => clearTimeout(timeout);
+  }, [charIndex, deleting, urlIndex, urls, typingSpeed, pauseMs]);
+
+  return text;
 }
 
 const scanSteps = [
@@ -26,6 +91,7 @@ export function ScanPage() {
   const [scanStep, setScanStep] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
+  const typingPlaceholder = useTypingPlaceholder(exampleUrls);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -37,8 +103,10 @@ export function ScanPage() {
       return;
     }
 
-    if (!isValidUrl(url.trim())) {
-      setError('Please enter a valid URL (e.g., https://example.com).');
+    const normalized = normalizeUrl(url);
+
+    if (!isValidUrl(normalized)) {
+      setError('Please enter a valid URL (e.g., svtplay.se).');
       inputRef.current?.focus();
       return;
     }
@@ -47,7 +115,7 @@ export function ScanPage() {
     setScanStep(0);
 
     try {
-      const { id } = await startScan(url.trim());
+      const { id } = await startScan(normalized);
       setScanStep(1);
 
       let status = 'in_progress';
@@ -131,7 +199,8 @@ export function ScanPage() {
                       setUrl(e.target.value);
                       if (error) setError('');
                     }}
-                    placeholder="https://example-streaming.eu"
+                    placeholder={typingPlaceholder || 'https://'}
+
                     disabled={scanning}
                     aria-invalid={error ? 'true' : undefined}
                     aria-describedby={error ? 'url-error' : undefined}
