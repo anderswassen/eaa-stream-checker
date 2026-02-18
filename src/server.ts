@@ -1,5 +1,8 @@
+import { resolve, join } from "node:path";
+import { existsSync } from "node:fs";
 import Fastify from "fastify";
 import cors from "@fastify/cors";
+import fastifyStatic from "@fastify/static";
 import type { AuditStore } from "./types/audit.js";
 import { healthRoutes } from "./routes/health.js";
 import { scanRoutes } from "./routes/scan.js";
@@ -35,6 +38,21 @@ await app.register(
   },
   { prefix: "/api" }
 );
+
+// Serve frontend static files in production (single-container deployment)
+const frontendDist = resolve(process.cwd(), "public");
+if (existsSync(frontendDist)) {
+  await app.register(fastifyStatic, {
+    root: frontendDist,
+    prefix: "/",
+    wildcard: false,
+  });
+  // SPA fallback: serve index.html for any non-API, non-file route
+  app.setNotFoundHandler((_req, reply) => {
+    reply.sendFile("index.html");
+  });
+  app.log.info(`Serving frontend from ${frontendDist}`);
+}
 
 // Graceful shutdown
 const shutdown = async (signal: string) => {

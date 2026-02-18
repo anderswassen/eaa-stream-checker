@@ -15,6 +15,7 @@
   "dependencies": {
     "@axe-core/playwright": "^4.10.1",
     "@fastify/cors": "^10.0.2",
+    "@fastify/static": "^9.0.0",
     "fastify": "^5.2.1",
     "playwright": "^1.50.1",
     "uuid": "^11.1.0"
