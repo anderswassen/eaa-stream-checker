@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import type { Clause } from '../types/report';
 import { StatusBadge } from './StatusBadge';
 import { SeverityBadge } from './SeverityBadge';
+import { FixSuggestion } from './FixSuggestion';
 
 export function ClauseSection({ clause }: { clause: Clause }) {
   const [expanded, setExpanded] = useState(clause.status === 'fail');
@@ -60,6 +61,9 @@ export function ClauseSection({ clause }: { clause: Clause }) {
                     <pre className="bg-slate-900/80 rounded-lg p-3 text-xs text-slate-400 overflow-x-auto font-mono border border-slate-800">
                       <code>{finding.evidence}</code>
                     </pre>
+                  )}
+                  {clause.status === 'fail' && (
+                    <FixSuggestion finding={finding} clauseId={clause.clauseId} />
                   )}
                 </div>
               ))}
