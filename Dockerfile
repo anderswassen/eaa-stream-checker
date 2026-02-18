@@ -30,6 +30,8 @@ COPY --from=frontend-build /app/frontend/dist ./public
 
 EXPOSE 3000
 
+ARG GIT_SHA=unknown
+ENV GIT_SHA=${GIT_SHA}
 ENV NODE_ENV=production
 ENV HOST=0.0.0.0
 ENV PORT=3000
