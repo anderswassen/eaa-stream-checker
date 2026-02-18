@@ -1,4 +1,5 @@
 import Fastify from "fastify";
+import cors from "@fastify/cors";
 import type { AuditStore } from "./types/audit.js";
 import { healthRoutes } from "./routes/health.js";
 import { scanRoutes } from "./routes/scan.js";
@@ -18,14 +19,22 @@ const app = Fastify({
   },
 });
 
+// CORS for frontend dev server
+await app.register(cors, { origin: true });
+
 // In-memory audit store (will be replaced with PostgreSQL later)
 const store: AuditStore = new Map();
 
-// Register routes
+// Register routes under /api prefix so frontend can proxy cleanly
 await app.register(healthRoutes);
-await app.register(async (instance) => scanRoutes(instance, store));
-await app.register(async (instance) => reportRoutes(instance, store));
-await app.register(mappingRoutes);
+await app.register(
+  async (instance) => {
+    await scanRoutes(instance, store);
+    await reportRoutes(instance, store);
+    await instance.register(mappingRoutes);
+  },
+  { prefix: "/api" }
+);
 
 // Graceful shutdown
 const shutdown = async (signal: string) => {

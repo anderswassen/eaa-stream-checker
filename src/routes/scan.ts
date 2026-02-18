@@ -3,6 +3,8 @@ import { v4 as uuidv4 } from "uuid";
 import type { AuditRequest, AuditResult, AuditStore } from "../types/audit.js";
 import { crawlPage } from "../services/crawler.js";
 import { analyzePage } from "../services/analyzer.js";
+import { prepareStreamingAnalysis } from "../services/streaming/index.js";
+import type { StreamingAnalysisResult } from "../services/streaming/index.js";
 
 export async function scanRoutes(app: FastifyInstance, store: AuditStore) {
   // POST /scan — start an async scan
@@ -64,7 +66,14 @@ export async function scanRoutes(app: FastifyInstance, store: AuditStore) {
     if (!audit) {
       return reply.status(404).send({ error: "Scan not found" });
     }
-    return audit;
+    // Map backend status to frontend-expected status
+    const statusMap: Record<string, string> = {
+      pending: "in_progress",
+      running: "in_progress",
+      completed: "completed",
+      failed: "failed",
+    };
+    return { ...audit, status: statusMap[audit.status] ?? audit.status };
   });
 
   // GET /scans — list all scans
@@ -97,12 +106,25 @@ async function runScan(
     });
     context = crawl.context;
 
+    // Run axe-core web accessibility audit
     const analysis = await analyzePage(crawl.page, options.tags);
 
     audit.violations = analysis.violations;
     audit.passes = analysis.passes;
     audit.incomplete = analysis.incomplete;
     audit.inapplicable = analysis.inapplicable;
+
+    // Run streaming-specific analysis (player detection, captions, AD, Clause 7)
+    try {
+      const streaming = prepareStreamingAnalysis(crawl.page);
+      await streaming.setupInterception();
+      await crawl.page.reload({ waitUntil: "networkidle" });
+      audit.streaming = await streaming.analyze();
+    } catch (streamingErr) {
+      // Streaming analysis is non-fatal — log and continue
+      console.warn("Streaming analysis failed:", streamingErr);
+    }
+
     audit.status = "completed";
     audit.duration = Date.now() - start;
   } catch (err) {

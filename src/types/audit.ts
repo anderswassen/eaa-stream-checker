@@ -34,6 +34,7 @@ export interface AuditResult {
   inapplicable: number;
   duration?: number;
   error?: string;
+  streaming?: import("../services/streaming/types.js").StreamingAnalysisResult;
 }
 
 export interface EN301549Clause {
