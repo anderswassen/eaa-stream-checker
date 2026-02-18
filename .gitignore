@@ -3,3 +3,6 @@ dist
 .context
 *.log
 .env
+.DS_Store
+docs/
+scripts/
