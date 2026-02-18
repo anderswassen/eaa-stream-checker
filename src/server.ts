@@ -12,6 +12,8 @@ import { closeBrowser } from "./services/crawler.js";
 
 const HOST = process.env.HOST ?? "0.0.0.0";
 const PORT = parseInt(process.env.PORT ?? "3000", 10);
+const GIT_SHA = process.env.GIT_SHA ?? "dev";
+const APP_VERSION = "0.0.2";
 
 const app = Fastify({
   logger: {
@@ -27,6 +29,12 @@ await app.register(cors, { origin: true });
 
 // In-memory audit store (will be replaced with PostgreSQL later)
 const store: AuditStore = new Map();
+
+// Version endpoint
+app.get("/version", async () => ({
+  version: APP_VERSION,
+  sha: GIT_SHA,
+}));
 
 // Register routes under /api prefix so frontend can proxy cleanly
 await app.register(healthRoutes);
@@ -68,7 +76,7 @@ process.on("SIGTERM", () => shutdown("SIGTERM"));
 // Start
 try {
   await app.listen({ host: HOST, port: PORT });
-  app.log.info(`EAA Stream Checker API running at http://${HOST}:${PORT}`);
+  app.log.info(`EAA Stream Checker v${APP_VERSION} (${GIT_SHA}) running at http://${HOST}:${PORT}`);
 } catch (err) {
   app.log.error(err);
   process.exit(1);
