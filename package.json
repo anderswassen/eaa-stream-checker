@@ -3,14 +3,14 @@
   "version": "0.1.0",
   "description": "EAA Stream Checker — accessibility compliance tool for streaming services",
   "type": "module",
-  "main": "dist/server.js",
+  "main": "dist/src/server.js",
   "scripts": {
     "build": "tsc",
     "dev": "tsx watch src/server.ts",
-    "start": "node dist/server.js",
+    "start": "node dist/src/server.js",
     "typecheck": "tsc --noEmit",
     "test": "node --import tsx --test tests/unit/*.test.ts",
-    "test:integration": "node --import tsx --test tests/integration/*.test.ts"
+    "test:integration": "tsc && node --test dist/tests/integration/*.test.js"
   },
   "dependencies": {
     "@axe-core/playwright": "^4.10.1",

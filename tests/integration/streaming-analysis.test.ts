@@ -1,16 +1,16 @@
 import { describe, it, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { chromium, type Browser, type Page } from 'playwright';
-import { resolve, dirname } from 'node:path';
-import { pathToFileURL, fileURLToPath } from 'node:url';
-import { detectPlayers } from '../../dist/services/streaming/player-detector.js';
-import { checkCaptions } from '../../dist/services/streaming/caption-checker.js';
-import { checkAudioDescription } from '../../dist/services/streaming/audio-description-checker.js';
-import { checkPlayerAccessibility } from '../../dist/services/streaming/player-accessibility.js';
-import { mapToClause7 } from '../../dist/services/streaming/clause7-mapper.js';
+import { resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
+import { detectPlayers } from '../../src/services/streaming/player-detector.js';
+import { checkCaptions } from '../../src/services/streaming/caption-checker.js';
+import { checkAudioDescription } from '../../src/services/streaming/audio-description-checker.js';
+import { checkPlayerAccessibility } from '../../src/services/streaming/player-accessibility.js';
+import { mapToClause7 } from '../../src/services/streaming/clause7-mapper.js';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const FIXTURES = resolve(__dirname, '..', 'fixtures');
+// Resolve fixtures relative to process.cwd() so it works from both src/ and dist/
+const FIXTURES = resolve(process.cwd(), 'tests', 'fixtures');
 
 function fixtureUrl(name: string): string {
   return pathToFileURL(resolve(FIXTURES, name)).href;
