@@ -42,7 +42,17 @@ export function ScanPage() {
       const { id } = await startScan(url.trim());
       setProgress('Analyzing page accessibility\u2026');
 
-      const { status } = await getScanStatus(id);
+      // Poll until scan completes or fails
+      let status = 'in_progress';
+      while (status === 'in_progress') {
+        await new Promise((r) => setTimeout(r, 2000));
+        const result = await getScanStatus(id);
+        status = result.status;
+        if (status === 'in_progress') {
+          setProgress('Scanning\u2026 this may take up to 30 seconds.');
+        }
+      }
+
       if (status === 'failed') {
         throw new Error('Scan failed. Please check the URL and try again.');
       }

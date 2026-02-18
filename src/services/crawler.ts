@@ -45,10 +45,15 @@ export async function crawlPage(
   const page = await context.newPage();
   page.setDefaultTimeout(timeout);
 
+  // Use "domcontentloaded" instead of "networkidle" because streaming sites
+  // keep connections open for video streams and never reach network idle.
   await page.goto(url, {
-    waitUntil: "networkidle",
+    waitUntil: "domcontentloaded",
     timeout,
   });
+
+  // Give JS-heavy players time to initialize
+  await page.waitForTimeout(3000);
 
   // If a specific selector was requested, wait for it
   if (options.waitForSelector) {
