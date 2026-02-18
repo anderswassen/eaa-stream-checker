@@ -1,0 +1,201 @@
+{
+  "id": "rpt-2025-001",
+  "url": "https://example-streaming.eu/watch",
+  "scannedAt": "2025-07-15T14:32:00Z",
+  "status": "completed",
+  "summary": {
+    "totalChecks": 14,
+    "passed": 7,
+    "failed": 4,
+    "needsReview": 3,
+    "overallStatus": "partially_compliant"
+  },
+  "clauses": [
+    {
+      "clauseId": "7.1.1",
+      "title": "Captioning playback",
+      "category": "video",
+      "status": "pass",
+      "findings": [
+        {
+          "description": "Caption track detected via <track kind=\"captions\"> element with WebVTT source.",
+          "evidence": "<track kind=\"captions\" src=\"/subs/en.vtt\" srclang=\"en\" label=\"English\">",
+          "severity": "minor"
+        }
+      ],
+      "recommendation": "Captions are present and playable. Ensure captions are available in all languages offered for the content."
+    },
+    {
+      "clauseId": "7.1.2",
+      "title": "Caption synchronization",
+      "category": "video",
+      "status": "needs_review",
+      "findings": [
+        {
+          "description": "Caption timestamps are present in WebVTT file but synchronization accuracy could not be fully verified automatically.",
+          "evidence": "WebVTT cues found: 342 cues, average gap between cues: 2.1s",
+          "severity": "minor"
+        }
+      ],
+      "recommendation": "Manual verification recommended: spot-check caption timing against spoken dialogue at multiple points in the content."
+    },
+    {
+      "clauseId": "7.1.4",
+      "title": "Caption characteristics",
+      "category": "video",
+      "status": "fail",
+      "findings": [
+        {
+          "description": "Video player does not provide user controls for caption font size, color, or background opacity.",
+          "evidence": "No caption customization UI elements detected in player controls.",
+          "severity": "major"
+        }
+      ],
+      "recommendation": "Add caption appearance settings to the player UI. Users must be able to adjust font size, font color, background color, and opacity. Reference: BBC iPlayer and Netflix provide good examples of caption customization controls."
+    },
+    {
+      "clauseId": "7.2.1",
+      "title": "Audio description playback",
+      "category": "video",
+      "status": "fail",
+      "findings": [
+        {
+          "description": "No audio description track detected in the HLS manifest or via <track kind=\"descriptions\"> element.",
+          "evidence": "HLS manifest parsed: 3 audio tracks found (English, German, French) — none marked as audio description.",
+          "severity": "critical"
+        }
+      ],
+      "recommendation": "Add an audio description track to the content. Include it as an alternative audio rendition in the HLS manifest with GROUP-ID indicating audio description. The player must provide a mechanism for users to select this track."
+    },
+    {
+      "clauseId": "7.3",
+      "title": "User controls for captions and audio description",
+      "category": "video",
+      "status": "needs_review",
+      "findings": [
+        {
+          "description": "Caption toggle button is present but is nested inside a submenu, not at the same interaction level as play/pause controls.",
+          "evidence": "Caption toggle requires: click settings gear → click 'Subtitles' → select language (3 interactions vs 1 for play/pause).",
+          "severity": "major"
+        }
+      ],
+      "recommendation": "Move the caption toggle to the primary control bar so it is accessible at the same interaction level as play, pause, and volume controls. EN 301 549 requires caption/AD controls to be at the same level as primary media controls."
+    },
+    {
+      "clauseId": "9.1.1.1",
+      "title": "Non-text content",
+      "category": "web_content",
+      "status": "fail",
+      "findings": [
+        {
+          "description": "3 images found without alternative text attributes.",
+          "evidence": "<img src=\"/hero-banner.jpg\" class=\"hero\"> (line 45), <img src=\"/promo-1.png\"> (line 112), <img src=\"/promo-2.png\"> (line 118)",
+          "severity": "major"
+        }
+      ],
+      "recommendation": "Add descriptive alt attributes to all images. For decorative images, use alt=\"\". For informative images, describe the content or function of the image."
+    },
+    {
+      "clauseId": "9.1.3.1",
+      "title": "Info and relationships",
+      "category": "web_content",
+      "status": "pass",
+      "findings": [
+        {
+          "description": "Page uses semantic HTML: headings are properly nested, lists use <ul>/<ol>, and form elements have associated labels.",
+          "severity": "minor"
+        }
+      ]
+    },
+    {
+      "clauseId": "9.1.4.3",
+      "title": "Contrast (minimum)",
+      "category": "web_content",
+      "status": "pass",
+      "findings": [
+        {
+          "description": "All text elements meet the minimum contrast ratio of 4.5:1 for normal text and 3:1 for large text.",
+          "evidence": "Lowest contrast ratio found: 5.2:1 on navigation link text (#555 on #fff).",
+          "severity": "minor"
+        }
+      ]
+    },
+    {
+      "clauseId": "9.2.1.1",
+      "title": "Keyboard",
+      "category": "web_content",
+      "status": "pass",
+      "findings": [
+        {
+          "description": "All interactive elements on the page are reachable and operable via keyboard.",
+          "severity": "minor"
+        }
+      ]
+    },
+    {
+      "clauseId": "9.2.4.3",
+      "title": "Focus order",
+      "category": "web_content",
+      "status": "pass",
+      "findings": [
+        {
+          "description": "Tab order follows a logical reading sequence through navigation, main content, and footer.",
+          "severity": "minor"
+        }
+      ]
+    },
+    {
+      "clauseId": "9.2.4.7",
+      "title": "Focus visible",
+      "category": "web_content",
+      "status": "pass",
+      "findings": [
+        {
+          "description": "Focus indicators are visible on all interactive elements when navigating with keyboard.",
+          "severity": "minor"
+        }
+      ]
+    },
+    {
+      "clauseId": "9.3.1.1",
+      "title": "Language of page",
+      "category": "web_content",
+      "status": "pass",
+      "findings": [
+        {
+          "description": "Page has lang attribute set on the <html> element.",
+          "evidence": "<html lang=\"en\">",
+          "severity": "minor"
+        }
+      ]
+    },
+    {
+      "clauseId": "9.4.1.1",
+      "title": "Parsing",
+      "category": "web_content",
+      "status": "needs_review",
+      "findings": [
+        {
+          "description": "2 HTML validation warnings detected that may affect assistive technology interpretation.",
+          "evidence": "Duplicate id=\"player-container\" found on lines 34 and 89.",
+          "severity": "minor"
+        }
+      ],
+      "recommendation": "Fix duplicate ID attributes. Each id value must be unique within the document to ensure assistive technologies can correctly reference elements."
+    },
+    {
+      "clauseId": "9.4.1.2",
+      "title": "Name, role, value",
+      "category": "web_content",
+      "status": "fail",
+      "findings": [
+        {
+          "description": "Video player control buttons lack accessible names. Screen readers announce them as 'button' with no indication of function.",
+          "evidence": "<button class=\"player-btn play\"><svg>...</svg></button> — no aria-label, no visible text, no title attribute.",
+          "severity": "critical"
+        }
+      ],
+      "recommendation": "Add aria-label attributes to all player control buttons. For example: aria-label=\"Play\", aria-label=\"Pause\", aria-label=\"Volume\", aria-label=\"Fullscreen\". Ensure labels update dynamically (e.g., 'Play' becomes 'Pause' when playing)."
+    }
+  ]
+}

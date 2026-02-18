@@ -8,10 +8,13 @@
     "build": "tsc",
     "dev": "tsx watch src/server.ts",
     "start": "node dist/server.js",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "node --import tsx --test tests/unit/*.test.ts",
+    "test:integration": "node --import tsx --test tests/integration/*.test.ts"
   },
   "dependencies": {
     "@axe-core/playwright": "^4.10.1",
+    "@fastify/cors": "^10.0.2",
     "fastify": "^5.2.1",
     "playwright": "^1.50.1",
     "uuid": "^11.1.0"

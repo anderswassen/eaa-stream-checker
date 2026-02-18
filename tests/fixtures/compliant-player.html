@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Compliant Player</title></head>
+<body>
+<div id="player" role="region" aria-label="Video player">
+  <video id="main-video" src="video.mp4" controls>
+    <track kind="captions" src="captions-en.vtt" srclang="en" label="English">
+    <track kind="subtitles" src="subtitles-sv.vtt" srclang="sv" label="Svenska">
+    <track kind="descriptions" src="descriptions-en.vtt" srclang="en" label="English Audio Description">
+  </video>
+  <div class="controls">
+    <button aria-label="Play" class="play-btn">&#9654;</button>
+    <button aria-label="Pause" class="pause-btn">&#9646;&#9646;</button>
+    <input type="range" aria-label="Volume" min="0" max="100" value="80" class="volume-slider">
+    <button aria-label="Toggle captions" class="cc-btn">CC</button>
+    <button aria-label="Audio description" class="ad-btn">AD</button>
+    <button aria-label="Fullscreen" class="fs-btn">&#x26F6;</button>
+    <input type="range" aria-label="Timeline" min="0" max="100" value="0" class="timeline-slider">
+  </div>
+  <div class="settings" role="menu" aria-label="Caption settings">
+    <label>Font Size <select><option>Small</option><option>Medium</option><option>Large</option></select></label>
+    <label>Font Color <input type="color" aria-label="font color"></label>
+    <label>Background Color <input type="color" aria-label="background color"></label>
+    <label>Opacity <input type="range" aria-label="opacity" min="0" max="100"></label>
+    <label>Position <select><option>Bottom</option><option>Top</option></select></label>
+  </div>
+</div>
+</body>
+</html>
