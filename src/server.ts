@@ -44,22 +44,25 @@ app.get("/debug/chromium", async () => {
   const execPath = await sparticuzChromium.executablePath();
   const tmpFiles = readdirSync("/tmp").filter(f => f.includes("chrom") || f.includes("playwright") || f === "chromium");
 
-  let fileInfo = "";
-  let lddInfo = "";
   let permissions = "";
-  let launchTest = "";
-  try { fileInfo = execSync(`file ${execPath}`).toString().trim(); } catch (e: any) { fileInfo = e.message; }
-  try { lddInfo = execSync(`ldd ${execPath} 2>&1`).toString().trim(); } catch (e: any) { lddInfo = e.message; }
+  let osRelease = "";
+  let userId = "";
+  let hasApk = false;
+  let chromiumPkg = "";
   try { const s = statSync(execPath); permissions = `mode=${s.mode.toString(8)}, size=${s.size}`; } catch (e: any) { permissions = e.message; }
-  try { launchTest = execSync(`${execPath} --version 2>&1`, { timeout: 5000 }).toString().trim(); } catch (e: any) { launchTest = e.stderr?.toString() || e.message; }
+  try { osRelease = execSync("cat /etc/os-release 2>&1").toString().trim(); } catch (e: any) { osRelease = e.message; }
+  try { userId = execSync("id 2>&1").toString().trim(); } catch (e: any) { userId = e.message; }
+  try { execSync("which apk"); hasApk = true; } catch { hasApk = false; }
+  try { chromiumPkg = execSync("which chromium-browser 2>/dev/null || which chromium 2>/dev/null || echo 'not found'").toString().trim(); } catch (e: any) { chromiumPkg = e.message; }
 
   return {
     executablePath: execPath,
     exists: existsSync(execPath),
     permissions,
-    fileInfo,
-    lddInfo: lddInfo.slice(0, 2000),
-    launchTest,
+    osRelease: osRelease.slice(0, 500),
+    userId,
+    hasApk,
+    systemChromium: chromiumPkg,
     tmpFiles,
     arch: process.arch,
     platform: process.platform,
