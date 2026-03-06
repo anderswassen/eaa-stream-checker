@@ -136,7 +136,9 @@ async function runScan(
     try {
       const streaming = prepareStreamingAnalysis(crawl.page);
       await streaming.setupInterception();
-      await crawl.page.reload({ waitUntil: "networkidle" });
+      await crawl.page.reload({ waitUntil: "domcontentloaded" });
+      // Give streaming manifests time to load without waiting for full network idle
+      await crawl.page.waitForTimeout(3000);
       audit.streaming = await streaming.analyze();
     } catch (streamingErr) {
       console.warn("Streaming analysis failed:", streamingErr);
