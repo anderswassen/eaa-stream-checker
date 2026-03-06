@@ -173,7 +173,7 @@ export function ReportPage() {
             <h1
               ref={headingRef}
               tabIndex={-1}
-              className="text-3xl sm:text-4xl font-extrabold text-white dark:text-white text-slate-900 focus:outline-none"
+              className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white focus:outline-none"
             >
               Compliance Report
             </h1>
@@ -181,7 +181,7 @@ export function ReportPage() {
 
           {/* Executive Summary */}
           <motion.section variants={fadeUp} aria-labelledby="summary-heading" className="space-y-4">
-            <h2 id="summary-heading" className="text-xl font-bold text-slate-200 dark:text-slate-200 text-slate-800">
+            <h2 id="summary-heading" className="text-xl font-bold text-slate-800 dark:text-slate-200">
               Executive Summary
             </h2>
 
@@ -214,7 +214,7 @@ export function ReportPage() {
                     ].map((item) => (
                       <div key={item.label}>
                         <dt className="text-xs text-slate-500 uppercase tracking-wide">{item.label}</dt>
-                        <dd className={`text-sm font-medium text-slate-200 dark:text-slate-200 text-slate-700 mt-0.5 ${item.breakAll ? 'break-all' : ''}`}>
+                        <dd className={`text-sm font-medium text-slate-700 dark:text-slate-200 mt-0.5 ${item.breakAll ? 'break-all' : ''}`}>
                           {item.value}
                         </dd>
                       </div>
@@ -243,14 +243,14 @@ export function ReportPage() {
           {/* Pages scanned (deep scan) */}
           {report.deepScan && report.pagesScanned && report.pagesScanned.length > 1 && (
             <motion.section variants={fadeUp} className="space-y-3">
-              <h2 className="text-lg font-bold text-slate-200 dark:text-slate-200 text-slate-800">
+              <h2 className="text-lg font-bold text-slate-800 dark:text-slate-200">
                 Pages Scanned
               </h2>
-              <div className="glass-light rounded-xl divide-y divide-slate-700/50 dark:divide-slate-700/50 divide-slate-200/50">
+              <div className="glass-light rounded-xl divide-y divide-slate-200/50 dark:divide-slate-700/50">
                 {report.pagesScanned.map((page) => (
                   <div key={page.url} className="flex items-center justify-between px-4 py-2.5">
                     <div className="min-w-0">
-                      <p className="text-sm text-slate-300 dark:text-slate-300 text-slate-700 truncate">{page.title}</p>
+                      <p className="text-sm text-slate-700 dark:text-slate-300 truncate">{page.title}</p>
                       <p className="text-xs text-slate-500 truncate">{page.url}</p>
                     </div>
                     <span className={`shrink-0 ml-3 text-xs font-semibold ${
@@ -294,7 +294,7 @@ export function ReportPage() {
                         7
                       </div>
                       <div>
-                        <h2 id="video-heading" className="text-xl font-bold text-slate-200 dark:text-slate-200 text-slate-800">
+                        <h2 id="video-heading" className="text-xl font-bold text-slate-800 dark:text-slate-200">
                           Video & Streaming
                         </h2>
                         <p className="text-xs text-slate-500">
@@ -325,7 +325,7 @@ export function ReportPage() {
                         9
                       </div>
                       <div>
-                        <h2 id="web-heading" className="text-xl font-bold text-slate-200 dark:text-slate-200 text-slate-800">
+                        <h2 id="web-heading" className="text-xl font-bold text-slate-800 dark:text-slate-200">
                           Web Content (WCAG 2.1 AA)
                         </h2>
                         <p className="text-xs text-slate-500">
@@ -359,7 +359,7 @@ export function ReportPage() {
 
           {/* Export Actions */}
           <motion.section variants={fadeUp} aria-labelledby="export-heading" className="no-print space-y-4">
-            <h2 id="export-heading" className="text-xl font-bold text-slate-200 dark:text-slate-200 text-slate-800">
+            <h2 id="export-heading" className="text-xl font-bold text-slate-800 dark:text-slate-200">
               Export
             </h2>
             <div className="flex flex-wrap gap-3">
@@ -375,7 +375,7 @@ export function ReportPage() {
               </button>
               <button
                 onClick={handleExportJson}
-                className="inline-flex items-center gap-2 rounded-xl border border-slate-700 dark:border-slate-700 border-slate-300 bg-slate-800/50 dark:bg-slate-800/50 bg-white/50 px-5 py-2.5 text-sm font-medium text-slate-300 dark:text-slate-300 text-slate-700 hover:bg-slate-700/50 dark:hover:bg-slate-700/50 hover:bg-slate-200/50 hover:text-white dark:hover:text-white hover:text-slate-900 focus:outline-2 focus:outline-offset-2 focus:outline-brand-400 transition-all"
+                className="inline-flex items-center gap-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white/50 dark:bg-slate-800/50 px-5 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-slate-700/50 hover:text-slate-900 dark:hover:text-white focus:outline-2 focus:outline-offset-2 focus:outline-brand-400 transition-all"
               >
                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -384,7 +384,7 @@ export function ReportPage() {
               </button>
               <button
                 onClick={() => window.print()}
-                className="inline-flex items-center gap-2 rounded-xl border border-slate-700 dark:border-slate-700 border-slate-300 bg-slate-800/50 dark:bg-slate-800/50 bg-white/50 px-5 py-2.5 text-sm font-medium text-slate-300 dark:text-slate-300 text-slate-700 hover:bg-slate-700/50 dark:hover:bg-slate-700/50 hover:bg-slate-200/50 hover:text-white dark:hover:text-white hover:text-slate-900 focus:outline-2 focus:outline-offset-2 focus:outline-brand-400 transition-all"
+                className="inline-flex items-center gap-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white/50 dark:bg-slate-800/50 px-5 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-slate-700/50 hover:text-slate-900 dark:hover:text-white focus:outline-2 focus:outline-offset-2 focus:outline-brand-400 transition-all"
               >
                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />

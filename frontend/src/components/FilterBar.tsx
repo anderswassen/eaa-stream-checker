@@ -29,13 +29,13 @@ function Chip({
       className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
         active
           ? `${colorClass} ring-1 ring-inset ring-current/20`
-          : 'bg-slate-800/50 dark:bg-slate-800/50 bg-slate-200/80 text-slate-500 dark:text-slate-500 hover:text-slate-300 dark:hover:text-slate-300 hover:text-slate-700'
+          : 'bg-slate-200/80 dark:bg-slate-800/50 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
       }`}
       aria-pressed={active}
     >
       {label}
       <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
-        active ? 'bg-white/10 dark:bg-white/10 bg-black/5' : 'bg-slate-700/50 dark:bg-slate-700/50 bg-slate-300/50'
+        active ? 'bg-black/5 dark:bg-white/10' : 'bg-slate-300/50 dark:bg-slate-700/50'
       }`}>
         {count}
       </span>
@@ -83,7 +83,7 @@ export function FilterBar({
   return (
     <div className="glass-light rounded-xl p-4 space-y-3">
       <div className="flex items-center justify-between">
-        <span className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-500 text-slate-600">
+        <span className="text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-500">
           Filters
         </span>
         {hasActiveFilters && (

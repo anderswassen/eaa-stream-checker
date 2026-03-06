@@ -138,7 +138,7 @@ export function FixSuggestion({ finding, clauseId }: FixSuggestionProps) {
       </p>
       {suggestion.code && (
         <div className="relative">
-          <pre className="bg-slate-900/80 dark:bg-slate-900/80 bg-slate-100/80 rounded-lg p-3 text-xs text-slate-300 dark:text-slate-300 text-slate-600 overflow-x-auto font-mono border border-slate-800 dark:border-slate-800 border-slate-200">
+          <pre className="bg-slate-100/80 dark:bg-slate-900/80 rounded-lg p-3 text-xs text-slate-600 dark:text-slate-300 overflow-x-auto font-mono border border-slate-200 dark:border-slate-800">
             <code>{suggestion.code}</code>
           </pre>
           <button

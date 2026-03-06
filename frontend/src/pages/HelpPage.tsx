@@ -34,7 +34,7 @@ export function HelpPage() {
 
         {/* Title */}
         <motion.div variants={fadeUp} className="space-y-3">
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-white dark:text-white text-slate-900">
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white">
             Help &amp; Regulatory Context
           </h1>
           <p className="text-slate-400 text-lg leading-relaxed">
@@ -44,15 +44,15 @@ export function HelpPage() {
 
         {/* The Regulation */}
         <motion.section variants={fadeUp} className="glass rounded-2xl p-6 sm:p-8 space-y-4">
-          <h2 className="text-xl font-bold text-slate-200 dark:text-slate-200 text-slate-800">
+          <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200">
             The European Accessibility Act
           </h2>
           <p className="text-sm text-slate-400 leading-relaxed">
-            The <strong className="text-slate-300 dark:text-slate-300 text-slate-700">European Accessibility Act (EAA)</strong>, formally
+            The <strong className="text-slate-700 dark:text-slate-300">European Accessibility Act (EAA)</strong>, formally
             Directive (EU) 2019/882, establishes binding accessibility requirements for products and
-            services across the European Union. As of <strong className="text-slate-300 dark:text-slate-300 text-slate-700">28 June 2025</strong>,
+            services across the European Union. As of <strong className="text-slate-700 dark:text-slate-300">28 June 2025</strong>,
             all digital services covered by the Act — including audio-visual media services and streaming
-            platforms — must comply with the harmonised European standard <strong className="text-slate-300 dark:text-slate-300 text-slate-700">EN 301 549</strong>.
+            platforms — must comply with the harmonised European standard <strong className="text-slate-700 dark:text-slate-300">EN 301 549</strong>.
           </p>
           <p className="text-sm text-slate-400 leading-relaxed">
             Non-compliance carries significant legal and financial risk. Member States are required to
@@ -65,7 +65,7 @@ export function HelpPage() {
 
         {/* What EN 301 549 requires */}
         <motion.section variants={fadeUp} className="glass rounded-2xl p-6 sm:p-8 space-y-4">
-          <h2 className="text-xl font-bold text-slate-200 dark:text-slate-200 text-slate-800">
+          <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200">
             What EN 301 549 Requires for Streaming Services
           </h2>
           <p className="text-sm text-slate-400 leading-relaxed">
@@ -73,10 +73,10 @@ export function HelpPage() {
             for media services. The standard imposes specific requirements across two key areas:
           </p>
           <div className="grid sm:grid-cols-2 gap-4 pt-2">
-            <div className="rounded-xl bg-slate-800/50 border border-slate-700/50 p-4 space-y-2">
+            <div className="rounded-xl bg-slate-100/50 dark:bg-slate-800/50 border border-slate-200/50 dark:border-slate-700/50 p-4 space-y-2">
               <div className="flex items-center gap-2">
                 <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-purple-500/10 text-purple-400 font-bold font-mono text-xs">7</span>
-                <h3 className="text-sm font-semibold text-slate-200 dark:text-slate-200 text-slate-800">Clause 7 — Video &amp; Streaming</h3>
+                <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200">Clause 7 — Video &amp; Streaming</h3>
               </div>
               <ul className="text-xs text-slate-400 space-y-1 ml-9 list-disc">
                 <li>Captions (subtitles) for pre-recorded and live content</li>
@@ -86,10 +86,10 @@ export function HelpPage() {
                 <li>User control over caption presentation</li>
               </ul>
             </div>
-            <div className="rounded-xl bg-slate-800/50 border border-slate-700/50 p-4 space-y-2">
+            <div className="rounded-xl bg-slate-100/50 dark:bg-slate-800/50 border border-slate-200/50 dark:border-slate-700/50 p-4 space-y-2">
               <div className="flex items-center gap-2">
                 <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-cyan-500/10 text-cyan-400 font-bold font-mono text-xs">9</span>
-                <h3 className="text-sm font-semibold text-slate-200 dark:text-slate-200 text-slate-800">Clause 9 — Web Content</h3>
+                <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200">Clause 9 — Web Content</h3>
               </div>
               <ul className="text-xs text-slate-400 space-y-1 ml-9 list-disc">
                 <li>WCAG 2.1 Level AA conformance</li>
@@ -109,7 +109,7 @@ export function HelpPage() {
 
         {/* How EAA Stream Checker helps */}
         <motion.section variants={fadeUp} className="glass rounded-2xl p-6 sm:p-8 space-y-4">
-          <h2 className="text-xl font-bold text-slate-200 dark:text-slate-200 text-slate-800">
+          <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200">
             How EAA Stream Checker Helps
           </h2>
           <p className="text-sm text-slate-400 leading-relaxed">
@@ -142,7 +142,7 @@ export function HelpPage() {
               <li key={item.title} className="flex gap-3">
                 <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-brand-400" aria-hidden="true" />
                 <div>
-                  <span className="text-sm font-medium text-slate-200 dark:text-slate-200 text-slate-800">{item.title}</span>
+                  <span className="text-sm font-medium text-slate-800 dark:text-slate-200">{item.title}</span>
                   <p className="text-xs text-slate-400 mt-0.5 leading-relaxed">{item.desc}</p>
                 </div>
               </li>
@@ -152,7 +152,7 @@ export function HelpPage() {
 
         {/* Important note */}
         <motion.section variants={fadeUp} className="glass rounded-2xl p-6 sm:p-8 space-y-4 border-l-2 border-yellow-500/50">
-          <h2 className="text-xl font-bold text-slate-200 dark:text-slate-200 text-slate-800">
+          <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200">
             Important Limitations
           </h2>
           <p className="text-sm text-slate-400 leading-relaxed">
@@ -172,7 +172,7 @@ export function HelpPage() {
 
         {/* How to use */}
         <motion.section variants={fadeUp} className="glass rounded-2xl p-6 sm:p-8 space-y-4">
-          <h2 className="text-xl font-bold text-slate-200 dark:text-slate-200 text-slate-800">
+          <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200">
             How to Use
           </h2>
           <ol className="space-y-3 pt-1">
@@ -195,7 +195,7 @@ export function HelpPage() {
 
         {/* Key dates */}
         <motion.section variants={fadeUp} className="glass rounded-2xl p-6 sm:p-8 space-y-4">
-          <h2 className="text-xl font-bold text-slate-200 dark:text-slate-200 text-slate-800">
+          <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200">
             Key Regulatory Dates
           </h2>
           <div className="space-y-3 pt-1">
@@ -216,7 +216,7 @@ export function HelpPage() {
         <motion.div variants={fadeUp} className="text-center pt-4">
           <Link
             to="/"
-            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-brand-600 to-cyan-500 px-8 py-3 text-sm font-bold text-white dark:text-white text-slate-900 hover:from-brand-500 hover:to-cyan-400 focus:outline-2 focus:outline-offset-2 focus:outline-brand-400 transition-all shadow-lg shadow-brand-500/20"
+            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-brand-600 to-cyan-500 px-8 py-3 text-sm font-bold text-white hover:from-brand-500 hover:to-cyan-400 focus:outline-2 focus:outline-offset-2 focus:outline-brand-400 transition-all shadow-lg shadow-brand-500/20"
           >
             Start a Compliance Scan
           </Link>
