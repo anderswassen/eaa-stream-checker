@@ -5,6 +5,7 @@
   "type": "module",
   "main": "dist/src/server.js",
   "scripts": {
+    "postinstall": "npx playwright install --with-deps chromium",
     "build": "tsc",
     "dev": "tsx watch src/server.ts",
     "start": "node dist/src/server.js",
