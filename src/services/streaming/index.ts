@@ -1,4 +1,4 @@
-import type { Page } from 'playwright';
+import type { Page } from 'playwright-core';
 import type { StreamingAnalysisResult } from './types.js';
 import { detectPlayers } from './player-detector.js';
 import { interceptManifests, parseManifests } from './manifest-parser.js';

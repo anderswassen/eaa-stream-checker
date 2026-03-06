@@ -1,6 +1,5 @@
 import { resolve, join } from "node:path";
 import { existsSync } from "node:fs";
-import { execSync } from "node:child_process";
 import Fastify from "fastify";
 import cors from "@fastify/cors";
 import fastifyStatic from "@fastify/static";
@@ -14,19 +13,7 @@ import { closeBrowser } from "./services/crawler.js";
 const HOST = process.env.HOST ?? "0.0.0.0";
 const PORT = parseInt(process.env.PORT ?? "8080", 10);
 const GIT_SHA = process.env.GIT_SHA ?? "dev";
-const APP_VERSION = "0.0.9";
-
-// Ensure Playwright Chromium is installed
-try {
-  console.log("Installing Playwright Chromium...");
-  execSync("npx playwright install chromium", {
-    stdio: "inherit",
-    timeout: 120000,
-  });
-  console.log("Playwright Chromium installed successfully");
-} catch (e) {
-  console.error("Playwright install failed:", e);
-}
+const APP_VERSION = "0.0.10";
 
 const app = Fastify({
   logger: {

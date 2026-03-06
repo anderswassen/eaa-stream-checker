@@ -1,4 +1,4 @@
-import type { Page } from 'playwright';
+import type { Page } from 'playwright-core';
 import type { DetectedPlayer, MediaElementInfo, PlayerSDK } from './types.js';
 
 interface SDKProbe {
