@@ -132,14 +132,20 @@ async function runScan(
       },
     ];
 
-    // Run streaming-specific analysis on primary page
+    // Run streaming-specific analysis — only reload if page likely has a video player
     try {
-      const streaming = prepareStreamingAnalysis(crawl.page);
-      await streaming.setupInterception();
-      await crawl.page.reload({ waitUntil: "domcontentloaded" });
-      // Give streaming manifests time to load without waiting for full network idle
-      await crawl.page.waitForTimeout(3000);
-      audit.streaming = await streaming.analyze();
+      const hasVideo = await crawl.page.evaluate(() => {
+        return document.querySelectorAll('video, audio, iframe[src*="youtube"], iframe[src*="vimeo"], iframe[src*="player"], [class*="player"], [id*="player"]').length > 0;
+      });
+
+      if (hasVideo) {
+        const streaming = prepareStreamingAnalysis(crawl.page);
+        await streaming.setupInterception();
+        await crawl.page.reload({ waitUntil: "domcontentloaded" });
+        await crawl.page.waitForTimeout(3000);
+        audit.streaming = await streaming.analyze();
+      }
+      // No video/player detected — skip streaming analysis entirely
     } catch (streamingErr) {
       console.warn("Streaming analysis failed:", streamingErr);
     }

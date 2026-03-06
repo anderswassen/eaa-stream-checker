@@ -77,7 +77,7 @@ export async function crawlPage(
   });
 
   // Give JS-heavy players time to initialize
-  await page.waitForTimeout(3000);
+  await page.waitForTimeout(2000);
 
   // If a specific selector was requested, wait for it
   if (options.waitForSelector) {
