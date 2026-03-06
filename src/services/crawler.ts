@@ -9,6 +9,7 @@ function findChromium(): string | undefined {
     "/usr/bin/chromium-browser",
     "/usr/bin/chromium",
     "/usr/bin/google-chrome",
+    "/usr/bin/google-chrome-stable",
   ];
   for (const path of candidates) {
     if (existsSync(path)) return path;

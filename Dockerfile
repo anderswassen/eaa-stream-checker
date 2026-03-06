@@ -35,6 +35,7 @@ ENV GIT_SHA=${GIT_SHA}
 ENV NODE_ENV=production
 ENV HOST=0.0.0.0
 ENV PORT=3000
+ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
   CMD curl -f http://localhost:${PORT}/health || exit 1
