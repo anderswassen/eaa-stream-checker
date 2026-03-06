@@ -23,7 +23,7 @@ FROM mcr.microsoft.com/playwright:v1.58.2-noble
 WORKDIR /app
 
 COPY package.json package-lock.json* ./
-RUN npm ci --omit=dev
+RUN npm ci --omit=dev && npx playwright-core install --with-deps chromium
 
 COPY --from=backend-build /app/dist ./dist
 COPY --from=frontend-build /app/frontend/dist ./public
