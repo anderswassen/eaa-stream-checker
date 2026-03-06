@@ -8,12 +8,12 @@ import { healthRoutes } from "./routes/health.js";
 import { scanRoutes } from "./routes/scan.js";
 import { reportRoutes } from "./routes/report.js";
 import { mappingRoutes } from "./routes/mappings.js";
-import { closeBrowser } from "./services/crawler.js";
+import { closeBrowser, findChromium } from "./services/crawler.js";
 
 const HOST = process.env.HOST ?? "0.0.0.0";
 const PORT = parseInt(process.env.PORT ?? "8080", 10);
 const GIT_SHA = process.env.GIT_SHA ?? "dev";
-const APP_VERSION = "0.0.10";
+const APP_VERSION = "0.0.11";
 
 const app = Fastify({
   logger: {
@@ -38,35 +38,13 @@ app.get("/version", async () => ({
 
 // Diagnostic endpoint
 app.get("/debug/chromium", async () => {
-  const { existsSync, readdirSync, statSync } = await import("node:fs");
   const { execSync } = await import("node:child_process");
-  const sparticuzChromium = (await import("@sparticuz/chromium")).default;
-  const execPath = await sparticuzChromium.executablePath();
-  const tmpFiles = readdirSync("/tmp").filter(f => f.includes("chrom") || f.includes("playwright") || f === "chromium");
-
-  let permissions = "";
-  let osRelease = "";
-  let userId = "";
-  let hasApk = false;
-  let chromiumPkg = "";
-  try { const s = statSync(execPath); permissions = `mode=${s.mode.toString(8)}, size=${s.size}`; } catch (e: any) { permissions = e.message; }
-  try { osRelease = execSync("cat /etc/os-release 2>&1").toString().trim(); } catch (e: any) { osRelease = e.message; }
-  try { userId = execSync("id 2>&1").toString().trim(); } catch (e: any) { userId = e.message; }
-  try { execSync("which apk"); hasApk = true; } catch { hasApk = false; }
-  try { chromiumPkg = execSync("which chromium-browser 2>/dev/null || which chromium 2>/dev/null || echo 'not found'").toString().trim(); } catch (e: any) { chromiumPkg = e.message; }
-
-  return {
-    executablePath: execPath,
-    exists: existsSync(execPath),
-    permissions,
-    osRelease: osRelease.slice(0, 500),
-    userId,
-    hasApk,
-    systemChromium: chromiumPkg,
-    tmpFiles,
-    arch: process.arch,
-    platform: process.platform,
-  };
+  const chromiumPath = findChromium();
+  let chromiumVersion = "";
+  if (chromiumPath) {
+    try { chromiumVersion = execSync(`${chromiumPath} --version 2>&1`, { timeout: 5000 }).toString().trim(); } catch (e: any) { chromiumVersion = e.message; }
+  }
+  return { chromiumPath: chromiumPath ?? "not found", chromiumVersion };
 });
 
 // Register routes under /api prefix so frontend can proxy cleanly
