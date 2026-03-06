@@ -131,11 +131,15 @@ export function ScanPage() {
 
       let status = 'in_progress';
       let pollCount = 0;
+      const maxPolls = deepScan ? 90 : 45; // 3 min deep, 1.5 min single
       while (status === 'in_progress') {
         await new Promise((r) => setTimeout(r, 2000));
+        pollCount++;
+        if (pollCount > maxPolls) {
+          throw new Error('Scan timed out. The site may be too large or the server is busy. Please try again.');
+        }
         const result = await getScanStatus(id);
         status = result.status;
-        pollCount++;
         if (status === 'failed') {
           const serverMsg = result.error;
           const userMsg = serverMsg?.includes('Executable doesn\'t exist')
