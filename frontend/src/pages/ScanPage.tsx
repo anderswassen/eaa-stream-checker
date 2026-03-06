@@ -228,7 +228,8 @@ export function ScanPage() {
                   <input
                     ref={inputRef}
                     id="url-input"
-                    type="url"
+                    type="text"
+                    inputMode="url"
                     value={url}
                     onChange={(e) => {
                       setUrl(e.target.value);

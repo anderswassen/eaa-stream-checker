@@ -42,18 +42,22 @@ export async function analyzePage(
   const doScreenshots = options?.captureScreenshots ?? true;
 
   const violations: AuditViolation[] = [];
+  let totalScreenshots = 0;
+  const MAX_SCREENSHOTS = 15; // Cap total screenshots to avoid slow scans on heavy sites
 
   for (const v of results.violations) {
     const wcagCriteria = extractWcagCriteria(v.tags);
     const en301549Clauses = mapWcagCriteriaToClauseIds(wcagCriteria);
 
     const nodes = [];
-    for (let i = 0; i < v.nodes.length; i++) {
+    const maxNodes = Math.min(v.nodes.length, 10); // Cap nodes per violation
+    for (let i = 0; i < maxNodes; i++) {
       const n = v.nodes[i];
       let screenshot: string | undefined;
-      // Capture screenshots for first 3 nodes per violation
-      if (doScreenshots && i < 3 && n.target.length > 0) {
+      // Capture screenshots for first 2 nodes per violation, up to global cap
+      if (doScreenshots && i < 2 && totalScreenshots < MAX_SCREENSHOTS && n.target.length > 0) {
         screenshot = await screenshotElement(page, String(n.target[0]));
+        if (screenshot) totalScreenshots++;
       }
       nodes.push({
         html: n.html,
