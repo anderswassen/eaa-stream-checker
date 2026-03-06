@@ -118,7 +118,27 @@ export function ScanActivityLog({ scanStep, deepScan, targetUrl }: ScanActivityL
       // Skip step 3 (crawling) for single-page scans
       const effectiveStep = !deepScan && currentStep >= 3 ? 4 : currentStep;
       const messages = STEP_MESSAGES[effectiveStep] ?? STEP_MESSAGES[4]!;
-      const idx = msgIndexRef.current % messages.length;
+
+      // Don't loop — once all messages for this step are shown, show a waiting indicator
+      if (msgIndexRef.current >= messages.length) {
+        // Show a subtle waiting message every few ticks
+        const waitTick = msgIndexRef.current - messages.length;
+        msgIndexRef.current++;
+        if (waitTick % 3 === 0) {
+          const dots = '.'.repeat((waitTick / 3) % 4 + 1);
+          const now = new Date();
+          const timestamp = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+          lineIdRef.current++;
+          setLines((prev) => {
+            const next = [...prev, { id: lineIdRef.current, text: `Waiting for server${dots}`, timestamp }];
+            if (next.length > 50) return next.slice(-50);
+            return next;
+          });
+        }
+        return;
+      }
+
+      const idx = msgIndexRef.current;
       const text = interpolate(messages[idx], targetUrl);
 
       const now = new Date();
