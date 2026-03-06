@@ -28,7 +28,7 @@ async function getBrowser(): Promise<Browser> {
         "--disable-setuid-sandbox",
         "--disable-dev-shm-usage",
         "--disable-gpu",
-        "--single-process",
+        "--disable-software-rasterizer",
         "--no-zygote",
       ],
     });
