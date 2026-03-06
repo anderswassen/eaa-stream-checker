@@ -29,6 +29,15 @@ function extractWcagCriteria(tags: string[]): string[] {
   return criteria;
 }
 
+function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error(`${label} timed out after ${ms / 1000}s`)), ms)
+    ),
+  ]);
+}
+
 /**
  * Run axe-core accessibility analysis on a Playwright page.
  */
@@ -37,8 +46,12 @@ export async function analyzePage(
   tags?: string[],
   options?: { captureScreenshots?: boolean; pageUrl?: string }
 ): Promise<AnalysisResult> {
-  const axe = new AxeBuilder({ page }).withTags(tags ?? DEFAULT_TAGS);
-  const results: AxeResults = await axe.analyze();
+  const axe = new AxeBuilder({ page })
+    .withTags(tags ?? DEFAULT_TAGS)
+    .exclude("iframe")        // Skip iframes (ads, embeds) — they're slow and often third-party
+    .exclude("[aria-hidden='true']"); // Skip hidden content
+
+  const results: AxeResults = await withTimeout(axe.analyze(), 45000, "axe-core analysis");
   const doScreenshots = options?.captureScreenshots ?? true;
 
   const violations: AuditViolation[] = [];
