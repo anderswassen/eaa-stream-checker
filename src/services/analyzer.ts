@@ -3,6 +3,7 @@ import type { Page } from "playwright-core";
 import type { AxeResults, Result, NodeResult } from "axe-core";
 import type { AuditViolation } from "../types/audit.js";
 import { mapWcagCriteriaToClauseIds } from "../mappings/en301549.js";
+import { screenshotElement } from "./crawler.js";
 
 const DEFAULT_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"];
 
@@ -33,29 +34,46 @@ function extractWcagCriteria(tags: string[]): string[] {
  */
 export async function analyzePage(
   page: Page,
-  tags?: string[]
+  tags?: string[],
+  options?: { captureScreenshots?: boolean; pageUrl?: string }
 ): Promise<AnalysisResult> {
   const axe = new AxeBuilder({ page }).withTags(tags ?? DEFAULT_TAGS);
   const results: AxeResults = await axe.analyze();
+  const doScreenshots = options?.captureScreenshots ?? true;
 
-  const violations: AuditViolation[] = results.violations.map((v: Result) => {
+  const violations: AuditViolation[] = [];
+
+  for (const v of results.violations) {
     const wcagCriteria = extractWcagCriteria(v.tags);
     const en301549Clauses = mapWcagCriteriaToClauseIds(wcagCriteria);
 
-    return {
+    const nodes = [];
+    for (let i = 0; i < v.nodes.length; i++) {
+      const n = v.nodes[i];
+      let screenshot: string | undefined;
+      // Capture screenshots for first 3 nodes per violation
+      if (doScreenshots && i < 3 && n.target.length > 0) {
+        screenshot = await screenshotElement(page, String(n.target[0]));
+      }
+      nodes.push({
+        html: n.html,
+        target: n.target.map(String),
+        failureSummary: n.failureSummary ?? "",
+        screenshot,
+        pageUrl: options?.pageUrl,
+      });
+    }
+
+    violations.push({
       id: v.id,
       impact: (v.impact ?? "minor") as AuditViolation["impact"],
       description: v.description,
       helpUrl: v.helpUrl,
       wcagCriteria,
       en301549Clauses,
-      nodes: v.nodes.map((n: NodeResult) => ({
-        html: n.html,
-        target: n.target.map(String),
-        failureSummary: n.failureSummary ?? "",
-      })),
-    };
-  });
+      nodes,
+    });
+  }
 
   return {
     violations,

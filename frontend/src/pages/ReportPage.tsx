@@ -1,11 +1,13 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-const loadJsPdf = () => import('jspdf');
-import type { ScanReport } from '../types/report';
+import type { ScanReport, Clause, Finding } from '../types/report';
 import { getReport } from '../api/client';
 import { ClauseSection } from '../components/ClauseSection';
 import { ScoreGauge } from '../components/ScoreGauge';
+import { FilterBar } from '../components/FilterBar';
+import { ReportTOC } from '../components/ReportTOC';
+import { exportPdf } from '../utils/pdfExport';
 
 const overallLabels: Record<ScanReport['summary']['overallStatus'], string> = {
   compliant: 'Compliant',
@@ -38,7 +40,13 @@ export function ReportPage() {
   const [report, setReport] = useState<ScanReport | null>(null);
   const [error, setError] = useState('');
   const [exportingPdf, setExportingPdf] = useState(false);
+  const [revealed, setRevealed] = useState(false);
   const headingRef = useRef<HTMLHeadingElement>(null);
+
+  // Filter state
+  const [statusFilter, setStatusFilter] = useState<Set<Clause['status']>>(new Set());
+  const [severityFilter, setSeverityFilter] = useState<Set<Finding['severity']>>(new Set());
+  const [categoryFilter, setCategoryFilter] = useState<Set<Clause['category']>>(new Set());
 
   useEffect(() => {
     if (!id) return;
@@ -50,6 +58,9 @@ export function ReportPage() {
   useEffect(() => {
     if (report) {
       headingRef.current?.focus();
+      // Trigger cascade reveal after score gauge animation
+      const timer = setTimeout(() => setRevealed(true), 800);
+      return () => clearTimeout(timer);
     }
   }, [report]);
 
@@ -94,8 +105,21 @@ export function ReportPage() {
   }
 
   const score = computeScore(report.summary);
-  const videoClauses = report.clauses.filter((c) => c.category === 'video');
-  const webClauses = report.clauses.filter((c) => c.category === 'web_content');
+
+  // Apply filters
+  const filteredClauses = report.clauses.filter((c) => {
+    if (statusFilter.size > 0 && !statusFilter.has(c.status)) return false;
+    if (categoryFilter.size > 0 && !categoryFilter.has(c.category)) return false;
+    if (severityFilter.size > 0) {
+      const hasSeverity = c.findings.some((f) => severityFilter.has(f.severity));
+      if (!hasSeverity && c.findings.length > 0) return false;
+      if (c.findings.length === 0 && !severityFilter.has('minor')) return false;
+    }
+    return true;
+  });
+
+  const videoClauses = filteredClauses.filter((c) => c.category === 'video');
+  const webClauses = filteredClauses.filter((c) => c.category === 'web_content');
   const scannedDate = new Date(report.scannedAt).toLocaleDateString('en-GB', {
     year: 'numeric',
     month: 'long',
@@ -120,153 +144,7 @@ export function ReportPage() {
     if (!report) return;
     setExportingPdf(true);
     try {
-      const { jsPDF } = await loadJsPdf();
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const pageWidth = 210;
-      const margin = 20;
-      const contentWidth = pageWidth - margin * 2;
-      let y = margin;
-
-      const checkPage = (needed: number) => {
-        if (y + needed > 277) {
-          pdf.addPage();
-          y = margin;
-        }
-      };
-
-      // Title
-      pdf.setFontSize(22);
-      pdf.setFont('helvetica', 'bold');
-      pdf.text('EAA Compliance Report', margin, y);
-      y += 10;
-
-      pdf.setFontSize(10);
-      pdf.setFont('helvetica', 'normal');
-      pdf.setTextColor(100);
-      pdf.text('by Staylive  |  EAA Stream Checker', margin, y);
-      y += 12;
-
-      // Divider
-      pdf.setDrawColor(200);
-      pdf.line(margin, y, pageWidth - margin, y);
-      y += 8;
-
-      // Summary info
-      pdf.setTextColor(0);
-      pdf.setFontSize(11);
-      pdf.setFont('helvetica', 'bold');
-      pdf.text('Executive Summary', margin, y);
-      y += 8;
-
-      const pct = report.summary.totalChecks > 0
-        ? Math.round((report.summary.passed / report.summary.totalChecks) * 100)
-        : 0;
-
-      pdf.setFontSize(9);
-      pdf.setFont('helvetica', 'normal');
-      const summaryLines = [
-        `URL: ${report.url}`,
-        `Date: ${new Date(report.scannedAt).toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}`,
-        `Status: ${overallLabels[report.summary.overallStatus]}  (${pct}%)`,
-        `Total Checks: ${report.summary.totalChecks}  |  Passed: ${report.summary.passed}  |  Failed: ${report.summary.failed}  |  Needs Review: ${report.summary.needsReview}`,
-        `Report ID: ${report.id}`,
-      ];
-      for (const line of summaryLines) {
-        checkPage(5);
-        pdf.text(line, margin, y);
-        y += 5;
-      }
-      y += 6;
-
-      // Clauses
-      const allClauses = [
-        ...(videoClauses.length > 0
-          ? [{ heading: 'Clause 7 — Video & Streaming', clauses: videoClauses }]
-          : []),
-        ...(webClauses.length > 0
-          ? [{ heading: 'Clause 9 — Web Content (WCAG 2.1 AA)', clauses: webClauses }]
-          : []),
-      ];
-
-      for (const section of allClauses) {
-        checkPage(14);
-        pdf.setDrawColor(200);
-        pdf.line(margin, y, pageWidth - margin, y);
-        y += 6;
-
-        pdf.setFontSize(11);
-        pdf.setFont('helvetica', 'bold');
-        pdf.setTextColor(0);
-        pdf.text(section.heading, margin, y);
-        y += 8;
-
-        for (const clause of section.clauses) {
-          checkPage(10);
-          // Status + clause ID + title
-          const statusLabel = clause.status === 'pass' ? 'PASS' : clause.status === 'fail' ? 'FAIL' : clause.status === 'needs_review' ? 'REVIEW' : 'N/A';
-          pdf.setFontSize(9);
-          pdf.setFont('helvetica', 'bold');
-          pdf.setTextColor(
-            clause.status === 'pass' ? 34 : clause.status === 'fail' ? 220 : 180,
-            clause.status === 'pass' ? 150 : clause.status === 'fail' ? 50 : 140,
-            clause.status === 'pass' ? 34 : clause.status === 'fail' ? 50 : 0,
-          );
-          pdf.text(`[${statusLabel}]`, margin, y);
-          pdf.setTextColor(0);
-          pdf.text(`${clause.clauseId} — ${clause.title}`, margin + 18, y);
-          y += 5;
-
-          // Findings
-          for (const finding of clause.findings) {
-            checkPage(8);
-            pdf.setFont('helvetica', 'normal');
-            pdf.setFontSize(8);
-            pdf.setTextColor(80);
-            const severity = `[${finding.severity.toUpperCase()}]`;
-            const lines = pdf.splitTextToSize(`${severity} ${finding.description}`, contentWidth - 4);
-            for (const line of lines) {
-              checkPage(4);
-              pdf.text(line, margin + 4, y);
-              y += 4;
-            }
-            if (finding.evidence) {
-              checkPage(4);
-              pdf.setFontSize(7);
-              pdf.setTextColor(120);
-              const evidenceLines = pdf.splitTextToSize(finding.evidence, contentWidth - 8);
-              for (const el of evidenceLines.slice(0, 3)) {
-                checkPage(3.5);
-                pdf.text(el, margin + 8, y);
-                y += 3.5;
-              }
-            }
-            y += 1;
-          }
-
-          // Recommendation
-          if (clause.recommendation) {
-            checkPage(8);
-            pdf.setFontSize(8);
-            pdf.setFont('helvetica', 'italic');
-            pdf.setTextColor(40, 80, 160);
-            const recLines = pdf.splitTextToSize(`Recommendation: ${clause.recommendation}`, contentWidth - 4);
-            for (const rl of recLines) {
-              checkPage(4);
-              pdf.text(rl, margin + 4, y);
-              y += 4;
-            }
-          }
-          y += 3;
-        }
-      }
-
-      // Footer on last page
-      pdf.setFontSize(7);
-      pdf.setFont('helvetica', 'normal');
-      pdf.setTextColor(150);
-      pdf.text('Generated by EAA Stream Checker v0.0.11 — Staylive', margin, 290);
-
-      pdf.save(`eaa-report-${report.id}.pdf`);
+      await exportPdf(report);
     } finally {
       setExportingPdf(false);
     }
@@ -274,176 +152,249 @@ export function ReportPage() {
 
   return (
     <main id="main-content" className="flex-1 px-4 py-8">
-      <motion.div
-        className="max-w-5xl mx-auto space-y-8"
-        variants={stagger}
-        initial="hidden"
-        animate="show"
-      >
-        {/* Header */}
-        <motion.div variants={fadeUp} className="space-y-4">
-          <Link
-            to="/"
-            className="no-print inline-flex items-center gap-2 text-sm text-brand-400 hover:text-brand-300 transition-colors focus:outline-2 focus:outline-offset-2 focus:outline-brand-400 rounded"
-          >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-            New scan
-          </Link>
-          <h1
-            ref={headingRef}
-            tabIndex={-1}
-            className="text-3xl sm:text-4xl font-extrabold text-white focus:outline-none"
-          >
-            Compliance Report
-          </h1>
-        </motion.div>
+      <div className="max-w-7xl mx-auto">
+        <motion.div
+          variants={stagger}
+          initial="hidden"
+          animate="show"
+          className="space-y-8"
+        >
+          {/* Header */}
+          <motion.div variants={fadeUp} className="space-y-4">
+            <Link
+              to="/"
+              className="no-print inline-flex items-center gap-2 text-sm text-brand-400 hover:text-brand-300 transition-colors focus:outline-2 focus:outline-offset-2 focus:outline-brand-400 rounded"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+              New scan
+            </Link>
+            <h1
+              ref={headingRef}
+              tabIndex={-1}
+              className="text-3xl sm:text-4xl font-extrabold text-white dark:text-white text-slate-900 focus:outline-none"
+            >
+              Compliance Report
+            </h1>
+          </motion.div>
 
-        {/* Executive Summary */}
-        <motion.section variants={fadeUp} aria-labelledby="summary-heading" className="space-y-4">
-          <h2 id="summary-heading" className="text-xl font-bold text-slate-200">
-            Executive Summary
-          </h2>
+          {/* Executive Summary */}
+          <motion.section variants={fadeUp} aria-labelledby="summary-heading" className="space-y-4">
+            <h2 id="summary-heading" className="text-xl font-bold text-slate-200 dark:text-slate-200 text-slate-800">
+              Executive Summary
+            </h2>
 
-          <div className="glass rounded-2xl p-6 sm:p-8">
-            <div className="flex flex-col sm:flex-row items-center gap-8">
-              {/* Score Gauge */}
-              <div className="shrink-0">
-                <ScoreGauge score={score} />
-              </div>
-
-              {/* Summary details */}
-              <div className="flex-1 space-y-5 w-full">
-                <div className="flex flex-wrap items-center gap-3">
-                  <span
-                    className={`rounded-full ring-1 ring-inset px-4 py-1.5 text-sm font-bold ${overallStyles[report.summary.overallStatus]}`}
-                  >
-                    {overallLabels[report.summary.overallStatus]}
-                  </span>
+            <div className="glass rounded-2xl p-6 sm:p-8">
+              <div className="flex flex-col sm:flex-row items-center gap-8">
+                <div className="shrink-0">
+                  <ScoreGauge score={score} />
                 </div>
 
-                <dl className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                  {[
-                    { label: 'URL Scanned', value: report.url, breakAll: true },
-                    { label: 'Date', value: scannedDate },
-                    { label: 'Total Checks', value: report.summary.totalChecks },
-                    { label: 'Report ID', value: report.id },
-                  ].map((item) => (
-                    <div key={item.label}>
-                      <dt className="text-xs text-slate-500 uppercase tracking-wide">{item.label}</dt>
-                      <dd className={`text-sm font-medium text-slate-200 mt-0.5 ${item.breakAll ? 'break-all' : ''}`}>
-                        {item.value}
-                      </dd>
+                <div className="flex-1 space-y-5 w-full">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <span
+                      className={`rounded-full ring-1 ring-inset px-4 py-1.5 text-sm font-bold ${overallStyles[report.summary.overallStatus]}`}
+                    >
+                      {overallLabels[report.summary.overallStatus]}
+                    </span>
+                    {report.deepScan && report.pagesScanned && (
+                      <span className="rounded-full ring-1 ring-inset px-3 py-1 text-xs font-medium bg-cyan-500/10 text-cyan-400 ring-cyan-500/20">
+                        Deep Scan — {report.pagesScanned.length} pages
+                      </span>
+                    )}
+                  </div>
+
+                  <dl className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    {[
+                      { label: 'URL Scanned', value: report.url, breakAll: true },
+                      { label: 'Date', value: scannedDate },
+                      { label: 'Total Checks', value: report.summary.totalChecks },
+                      { label: 'Report ID', value: report.id },
+                    ].map((item) => (
+                      <div key={item.label}>
+                        <dt className="text-xs text-slate-500 uppercase tracking-wide">{item.label}</dt>
+                        <dd className={`text-sm font-medium text-slate-200 dark:text-slate-200 text-slate-700 mt-0.5 ${item.breakAll ? 'break-all' : ''}`}>
+                          {item.value}
+                        </dd>
+                      </div>
+                    ))}
+                  </dl>
+
+                  <div className="flex flex-wrap gap-3">
+                    <span className="inline-flex items-center gap-2 rounded-lg bg-green-500/10 px-3 py-1.5 text-sm font-medium text-green-400">
+                      <span aria-hidden="true" className="h-2 w-2 rounded-full bg-green-400" />
+                      {report.summary.passed} Passed
+                    </span>
+                    <span className="inline-flex items-center gap-2 rounded-lg bg-red-500/10 px-3 py-1.5 text-sm font-medium text-red-400">
+                      <span aria-hidden="true" className="h-2 w-2 rounded-full bg-red-400" />
+                      {report.summary.failed} Failed
+                    </span>
+                    <span className="inline-flex items-center gap-2 rounded-lg bg-yellow-500/10 px-3 py-1.5 text-sm font-medium text-yellow-400">
+                      <span aria-hidden="true" className="h-2 w-2 rounded-full bg-yellow-400" />
+                      {report.summary.needsReview} Needs Review
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.section>
+
+          {/* Pages scanned (deep scan) */}
+          {report.deepScan && report.pagesScanned && report.pagesScanned.length > 1 && (
+            <motion.section variants={fadeUp} className="space-y-3">
+              <h2 className="text-lg font-bold text-slate-200 dark:text-slate-200 text-slate-800">
+                Pages Scanned
+              </h2>
+              <div className="glass-light rounded-xl divide-y divide-slate-700/50 dark:divide-slate-700/50 divide-slate-200/50">
+                {report.pagesScanned.map((page) => (
+                  <div key={page.url} className="flex items-center justify-between px-4 py-2.5">
+                    <div className="min-w-0">
+                      <p className="text-sm text-slate-300 dark:text-slate-300 text-slate-700 truncate">{page.title}</p>
+                      <p className="text-xs text-slate-500 truncate">{page.url}</p>
                     </div>
-                  ))}
-                </dl>
+                    <span className={`shrink-0 ml-3 text-xs font-semibold ${
+                      page.violationCount > 0 ? 'text-red-400' : 'text-green-400'
+                    }`}>
+                      {page.violationCount} violation{page.violationCount !== 1 ? 's' : ''}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </motion.section>
+          )}
 
-                {/* Stat pills */}
-                <div className="flex flex-wrap gap-3">
-                  <span className="inline-flex items-center gap-2 rounded-lg bg-green-500/10 px-3 py-1.5 text-sm font-medium text-green-400">
-                    <span aria-hidden="true" className="h-2 w-2 rounded-full bg-green-400" />
-                    {report.summary.passed} Passed
-                  </span>
-                  <span className="inline-flex items-center gap-2 rounded-lg bg-red-500/10 px-3 py-1.5 text-sm font-medium text-red-400">
-                    <span aria-hidden="true" className="h-2 w-2 rounded-full bg-red-400" />
-                    {report.summary.failed} Failed
-                  </span>
-                  <span className="inline-flex items-center gap-2 rounded-lg bg-yellow-500/10 px-3 py-1.5 text-sm font-medium text-yellow-400">
-                    <span aria-hidden="true" className="h-2 w-2 rounded-full bg-yellow-400" />
-                    {report.summary.needsReview} Needs Review
-                  </span>
-                </div>
+          {/* Filters + Content layout */}
+          <motion.div variants={fadeUp}>
+            <div className="no-print mb-6">
+              <FilterBar
+                clauses={report.clauses}
+                statusFilter={statusFilter}
+                severityFilter={severityFilter}
+                categoryFilter={categoryFilter}
+                onStatusChange={setStatusFilter}
+                onSeverityChange={setSeverityFilter}
+                onCategoryChange={setCategoryFilter}
+              />
+            </div>
+
+            <div className="flex gap-8">
+              {/* TOC sidebar */}
+              <aside className="hidden lg:block w-56 shrink-0 no-print">
+                <ReportTOC clauses={filteredClauses} />
+              </aside>
+
+              {/* Clause sections */}
+              <div className="flex-1 min-w-0 space-y-8">
+                {/* Clause 7 -- Video/Streaming */}
+                {videoClauses.length > 0 && (
+                  <section aria-labelledby="video-heading" className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-500/10 text-purple-400 font-bold font-mono text-xs">
+                        7
+                      </div>
+                      <div>
+                        <h2 id="video-heading" className="text-xl font-bold text-slate-200 dark:text-slate-200 text-slate-800">
+                          Video & Streaming
+                        </h2>
+                        <p className="text-xs text-slate-500">
+                          EN 301 549 Clause 7 — captions, audio description, player accessibility
+                        </p>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      {videoClauses.map((clause, i) => (
+                        <div
+                          key={clause.clauseId}
+                          id={`clause-section-${clause.clauseId}`}
+                          className={revealed ? 'clause-reveal' : 'opacity-0'}
+                          style={revealed ? { animationDelay: `${i * 60}ms` } : undefined}
+                        >
+                          <ClauseSection clause={clause} />
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                )}
+
+                {/* Clause 9 -- Web Content */}
+                {webClauses.length > 0 && (
+                  <section aria-labelledby="web-heading" className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-cyan-500/10 text-cyan-400 font-bold font-mono text-xs">
+                        9
+                      </div>
+                      <div>
+                        <h2 id="web-heading" className="text-xl font-bold text-slate-200 dark:text-slate-200 text-slate-800">
+                          Web Content (WCAG 2.1 AA)
+                        </h2>
+                        <p className="text-xs text-slate-500">
+                          EN 301 549 Clause 9 — Perceivable, Operable, Understandable, Robust
+                        </p>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      {webClauses.map((clause, i) => (
+                        <div
+                          key={clause.clauseId}
+                          id={`clause-section-${clause.clauseId}`}
+                          className={revealed ? 'clause-reveal' : 'opacity-0'}
+                          style={revealed ? { animationDelay: `${(videoClauses.length + i) * 60}ms` } : undefined}
+                        >
+                          <ClauseSection clause={clause} />
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                )}
+
+                {filteredClauses.length === 0 && (
+                  <div className="text-center py-12">
+                    <p className="text-slate-500">No clauses match the current filters.</p>
+                  </div>
+                )}
               </div>
             </div>
-          </div>
-        </motion.section>
+          </motion.div>
 
-        {/* Clause 7 -- Video/Streaming */}
-        {videoClauses.length > 0 && (
-          <motion.section variants={fadeUp} aria-labelledby="video-heading" className="space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-500/10 text-purple-400 font-bold font-mono text-xs">
-                7
-              </div>
-              <div>
-                <h2 id="video-heading" className="text-xl font-bold text-slate-200">
-                  Video & Streaming
-                </h2>
-                <p className="text-xs text-slate-500">
-                  EN 301 549 Clause 7 — captions, audio description, player accessibility
-                </p>
-              </div>
-            </div>
-            <div className="space-y-2">
-              {videoClauses.map((clause) => (
-                <ClauseSection key={clause.clauseId} clause={clause} />
-              ))}
+          {/* Export Actions */}
+          <motion.section variants={fadeUp} aria-labelledby="export-heading" className="no-print space-y-4">
+            <h2 id="export-heading" className="text-xl font-bold text-slate-200 dark:text-slate-200 text-slate-800">
+              Export
+            </h2>
+            <div className="flex flex-wrap gap-3">
+              <button
+                onClick={handleExportPdf}
+                disabled={exportingPdf}
+                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-brand-600 to-cyan-500 px-5 py-2.5 text-sm font-semibold text-white hover:from-brand-500 hover:to-cyan-400 focus:outline-2 focus:outline-offset-2 focus:outline-brand-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-brand-500/20"
+              >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                {exportingPdf ? 'Generating PDF...' : 'Download PDF'}
+              </button>
+              <button
+                onClick={handleExportJson}
+                className="inline-flex items-center gap-2 rounded-xl border border-slate-700 dark:border-slate-700 border-slate-300 bg-slate-800/50 dark:bg-slate-800/50 bg-white/50 px-5 py-2.5 text-sm font-medium text-slate-300 dark:text-slate-300 text-slate-700 hover:bg-slate-700/50 dark:hover:bg-slate-700/50 hover:bg-slate-200/50 hover:text-white dark:hover:text-white hover:text-slate-900 focus:outline-2 focus:outline-offset-2 focus:outline-brand-400 transition-all"
+              >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                Download JSON
+              </button>
+              <button
+                onClick={() => window.print()}
+                className="inline-flex items-center gap-2 rounded-xl border border-slate-700 dark:border-slate-700 border-slate-300 bg-slate-800/50 dark:bg-slate-800/50 bg-white/50 px-5 py-2.5 text-sm font-medium text-slate-300 dark:text-slate-300 text-slate-700 hover:bg-slate-700/50 dark:hover:bg-slate-700/50 hover:bg-slate-200/50 hover:text-white dark:hover:text-white hover:text-slate-900 focus:outline-2 focus:outline-offset-2 focus:outline-brand-400 transition-all"
+              >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                </svg>
+                Print Report
+              </button>
             </div>
           </motion.section>
-        )}
-
-        {/* Clause 9 -- Web Content */}
-        {webClauses.length > 0 && (
-          <motion.section variants={fadeUp} aria-labelledby="web-heading" className="space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-cyan-500/10 text-cyan-400 font-bold font-mono text-xs">
-                9
-              </div>
-              <div>
-                <h2 id="web-heading" className="text-xl font-bold text-slate-200">
-                  Web Content (WCAG 2.1 AA)
-                </h2>
-                <p className="text-xs text-slate-500">
-                  EN 301 549 Clause 9 — Perceivable, Operable, Understandable, Robust
-                </p>
-              </div>
-            </div>
-            <div className="space-y-2">
-              {webClauses.map((clause) => (
-                <ClauseSection key={clause.clauseId} clause={clause} />
-              ))}
-            </div>
-          </motion.section>
-        )}
-
-        {/* Export Actions */}
-        <motion.section variants={fadeUp} aria-labelledby="export-heading" className="no-print space-y-4">
-          <h2 id="export-heading" className="text-xl font-bold text-slate-200">
-            Export
-          </h2>
-          <div className="flex flex-wrap gap-3">
-            <button
-              onClick={handleExportPdf}
-              disabled={exportingPdf}
-              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-brand-600 to-cyan-500 px-5 py-2.5 text-sm font-semibold text-white hover:from-brand-500 hover:to-cyan-400 focus:outline-2 focus:outline-offset-2 focus:outline-brand-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-brand-500/20"
-            >
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              {exportingPdf ? 'Generating PDF...' : 'Download PDF'}
-            </button>
-            <button
-              onClick={handleExportJson}
-              className="inline-flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-800/50 px-5 py-2.5 text-sm font-medium text-slate-300 hover:bg-slate-700/50 hover:text-white focus:outline-2 focus:outline-offset-2 focus:outline-brand-400 transition-all"
-            >
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-              </svg>
-              Download JSON
-            </button>
-            <button
-              onClick={() => window.print()}
-              className="inline-flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-800/50 px-5 py-2.5 text-sm font-medium text-slate-300 hover:bg-slate-700/50 hover:text-white focus:outline-2 focus:outline-offset-2 focus:outline-brand-400 transition-all"
-            >
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-              </svg>
-              Print Report
-            </button>
-          </div>
-        </motion.section>
-      </motion.div>
+        </motion.div>
+      </div>
     </main>
   );
 }

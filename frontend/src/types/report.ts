@@ -2,6 +2,7 @@ export interface Finding {
   description: string;
   evidence?: string;
   screenshot?: string;
+  pageUrl?: string;
   severity: 'critical' | 'major' | 'minor';
 }
 
@@ -14,11 +15,19 @@ export interface Clause {
   recommendation?: string;
 }
 
+export interface PageScanned {
+  url: string;
+  title: string;
+  violationCount: number;
+}
+
 export interface ScanReport {
   id: string;
   url: string;
   scannedAt: string;
   status: 'completed' | 'in_progress' | 'failed';
+  deepScan?: boolean;
+  pagesScanned?: PageScanned[];
   summary: {
     totalChecks: number;
     passed: number;

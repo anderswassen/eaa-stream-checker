@@ -3,6 +3,8 @@ export interface AuditRequest {
   tags?: string[];
   waitForSelector?: string;
   timeout?: number;
+  deepScan?: boolean;
+  maxPages?: number;
 }
 
 export type AuditStatus = "pending" | "running" | "completed" | "failed";
@@ -11,6 +13,8 @@ export interface ViolationNode {
   html: string;
   target: string[];
   failureSummary: string;
+  screenshot?: string;
+  pageUrl?: string;
 }
 
 export interface AuditViolation {
@@ -21,6 +25,13 @@ export interface AuditViolation {
   wcagCriteria: string[];
   en301549Clauses: string[];
   nodes: ViolationNode[];
+}
+
+export interface PageResult {
+  url: string;
+  title: string;
+  violationCount: number;
+  duration: number;
 }
 
 export interface AuditResult {
@@ -35,6 +46,8 @@ export interface AuditResult {
   duration?: number;
   error?: string;
   streaming?: import("../services/streaming/types.js").StreamingAnalysisResult;
+  deepScan?: boolean;
+  pagesScanned?: PageResult[];
 }
 
 export interface EN301549Clause {

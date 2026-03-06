@@ -10,6 +10,8 @@ import type { StreamingFinding } from "../services/streaming/types.js";
 interface Finding {
   description: string;
   evidence?: string;
+  screenshot?: string;
+  pageUrl?: string;
   severity: "critical" | "major" | "minor";
 }
 
@@ -22,11 +24,19 @@ interface Clause {
   recommendation?: string;
 }
 
+interface PageScanned {
+  url: string;
+  title: string;
+  violationCount: number;
+}
+
 interface FrontendScanReport {
   id: string;
   url: string;
   scannedAt: string;
   status: "completed" | "in_progress" | "failed";
+  deepScan?: boolean;
+  pagesScanned?: PageScanned[];
   summary: {
     totalChecks: number;
     passed: number;
@@ -79,11 +89,18 @@ export async function reportRoutes(app: FastifyInstance, store: AuditStore) {
     const webClauses: Clause[] = Object.values(clause9Mappings).map(
       (clause) => {
         const violations = clauseViolations.get(clause.id) ?? [];
-        const findings: Finding[] = violations.map((v) => ({
-          description: v.description,
-          evidence: v.nodes.map((n) => n.html).join("\n"),
-          severity: mapImpactToSeverity(v.impact),
-        }));
+        const findings: Finding[] = violations.map((v) => {
+          // Use first node's screenshot if available
+          const firstScreenshot = v.nodes.find((n) => n.screenshot)?.screenshot;
+          const firstPageUrl = v.nodes.find((n) => n.pageUrl)?.pageUrl;
+          return {
+            description: v.description,
+            evidence: v.nodes.map((n) => n.html).join("\n"),
+            screenshot: firstScreenshot,
+            pageUrl: firstPageUrl,
+            severity: mapImpactToSeverity(v.impact),
+          };
+        });
 
         return {
           clauseId: clause.id,
@@ -137,6 +154,12 @@ export async function reportRoutes(app: FastifyInstance, store: AuditStore) {
       url: audit.url,
       scannedAt: audit.timestamp,
       status: "completed",
+      deepScan: audit.deepScan,
+      pagesScanned: audit.pagesScanned?.map((p) => ({
+        url: p.url,
+        title: p.title,
+        violationCount: p.violationCount,
+      })),
       summary: {
         totalChecks: allClauses.length,
         passed,

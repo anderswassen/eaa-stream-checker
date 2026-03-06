@@ -23,7 +23,7 @@
   --color-surface-950: #020617;
 }
 
-/* Glassmorphism utility */
+/* ── Theme-aware glassmorphism ────────────────────────────────── */
 .glass {
   background: rgba(15, 23, 42, 0.6);
   backdrop-filter: blur(16px);
@@ -38,7 +38,17 @@
   border: 1px solid rgba(148, 163, 184, 0.08);
 }
 
-/* Gradient mesh background for hero */
+:root:not(.dark) .glass {
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+:root:not(.dark) .glass-light {
+  background: rgba(241, 245, 249, 0.6);
+  border: 1px solid rgba(148, 163, 184, 0.15);
+}
+
+/* ── Gradient mesh background ─────────────────────────────────── */
 .gradient-mesh {
   background:
     radial-gradient(ellipse at 20% 50%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
@@ -46,7 +56,14 @@
     radial-gradient(ellipse at 40% 80%, rgba(139, 92, 246, 0.08) 0%, transparent 50%);
 }
 
-/* Animated gradient border */
+:root:not(.dark) .gradient-mesh {
+  background:
+    radial-gradient(ellipse at 20% 50%, rgba(59, 130, 246, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(6, 182, 212, 0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 40% 80%, rgba(139, 92, 246, 0.04) 0%, transparent 50%);
+}
+
+/* ── Animated gradient border ─────────────────────────────────── */
 @keyframes gradient-shift {
   0%, 100% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
@@ -72,7 +89,7 @@
   pointer-events: none;
 }
 
-/* Pulse ring animation for scanning */
+/* ── Pulse ring animation ─────────────────────────────────────── */
 @keyframes pulse-ring {
   0% { transform: scale(0.8); opacity: 1; }
   100% { transform: scale(2.2); opacity: 0; }
@@ -82,7 +99,7 @@
   animation: pulse-ring 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
 }
 
-/* Score gauge animation */
+/* ── Score gauge animation ────────────────────────────────────── */
 @keyframes score-fill {
   from { stroke-dashoffset: var(--circumference); }
   to { stroke-dashoffset: var(--dash-offset); }
@@ -92,22 +109,34 @@
   animation: score-fill 1.2s ease-out forwards;
 }
 
-/* Smooth scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-}
-::-webkit-scrollbar-track {
-  background: #0f172a;
-}
-::-webkit-scrollbar-thumb {
-  background: #334155;
-  border-radius: 4px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #475569;
+/* ── Clause reveal cascade ────────────────────────────────────── */
+@keyframes clause-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-/* Print styles */
+.clause-reveal {
+  animation: clause-reveal 0.4s ease-out both;
+}
+
+/* ── Scrollbar ────────────────────────────────────────────────── */
+.dark ::-webkit-scrollbar { width: 8px; }
+.dark ::-webkit-scrollbar-track { background: #0f172a; }
+.dark ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+.dark ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+:root:not(.dark) ::-webkit-scrollbar { width: 8px; }
+:root:not(.dark) ::-webkit-scrollbar-track { background: #f1f5f9; }
+:root:not(.dark) ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+:root:not(.dark) ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+/* ── Print styles ─────────────────────────────────────────────── */
 @media print {
   body {
     background: white !important;

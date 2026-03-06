@@ -60,7 +60,7 @@ export function ScoreGauge({ score, size = 160, label }: ScoreGaugeProps) {
             cy={size / 2}
             r={radius}
             fill="none"
-            stroke="rgba(51, 65, 85, 0.5)"
+            className="stroke-slate-700/50 dark:stroke-slate-700/50 stroke-slate-200"
             strokeWidth={strokeWidth}
           />
           {/* Glow filter */}

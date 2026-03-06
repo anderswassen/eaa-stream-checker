@@ -89,6 +89,64 @@ export async function crawlPage(
 }
 
 /**
+ * Extract internal links from the current page (same origin only).
+ */
+export async function extractInternalLinks(
+  page: Page,
+  baseUrl: string,
+  maxLinks: number = 10
+): Promise<string[]> {
+  const origin = new URL(baseUrl).origin;
+  const links: string[] = await page.evaluate(
+    ({ origin, max }) => {
+      const anchors = Array.from(document.querySelectorAll("a[href]"));
+      const seen = new Set<string>();
+      const result: string[] = [];
+      for (const a of anchors) {
+        if (result.length >= max) break;
+        try {
+          const url = new URL((a as HTMLAnchorElement).href);
+          // Same origin, no hash-only links, no javascript:
+          if (
+            url.origin === origin &&
+            url.protocol.startsWith("http") &&
+            !seen.has(url.pathname)
+          ) {
+            seen.add(url.pathname);
+            result.push(url.href);
+          }
+        } catch {
+          // skip invalid URLs
+        }
+      }
+      return result;
+    },
+    { origin, max: maxLinks }
+  );
+  return links;
+}
+
+/**
+ * Capture a screenshot of a specific element by CSS selector.
+ * Returns a base64 data URI or undefined if the element can't be captured.
+ */
+export async function screenshotElement(
+  page: Page,
+  selector: string
+): Promise<string | undefined> {
+  try {
+    const element = await page.$(selector);
+    if (!element) return undefined;
+    const box = await element.boundingBox();
+    if (!box || box.width === 0 || box.height === 0) return undefined;
+    const buffer = await element.screenshot({ type: "jpeg", quality: 70 });
+    return `data:image/jpeg;base64,${buffer.toString("base64")}`;
+  } catch {
+    return undefined;
+  }
+}
+
+/**
  * Close the browser instance (for graceful shutdown).
  */
 export async function closeBrowser(): Promise<void> {

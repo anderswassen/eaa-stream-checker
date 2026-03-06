@@ -80,6 +80,14 @@ const scanSteps = [
   { label: 'Connecting', description: 'Loading page in browser' },
   { label: 'Analyzing', description: 'Running accessibility checks' },
   { label: 'Streaming', description: 'Checking video player compliance' },
+  { label: 'Crawling', description: 'Scanning additional pages' },
+  { label: 'Finalizing', description: 'Generating report' },
+];
+
+const scanStepsSingle = [
+  { label: 'Connecting', description: 'Loading page in browser' },
+  { label: 'Analyzing', description: 'Running accessibility checks' },
+  { label: 'Streaming', description: 'Checking video player compliance' },
   { label: 'Finalizing', description: 'Generating report' },
 ];
 
@@ -88,9 +96,12 @@ export function ScanPage() {
   const [error, setError] = useState('');
   const [scanning, setScanning] = useState(false);
   const [scanStep, setScanStep] = useState(0);
+  const [deepScan, setDeepScan] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
   const typingPlaceholder = useTypingPlaceholder(exampleUrls);
+
+  const steps = deepScan ? scanSteps : scanStepsSingle;
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -114,7 +125,7 @@ export function ScanPage() {
     setScanStep(0);
 
     try {
-      const { id } = await startScan(normalized);
+      const { id } = await startScan({ url: normalized, deepScan, maxPages: 5 });
       setScanStep(1);
 
       let status = 'in_progress';
@@ -125,7 +136,9 @@ export function ScanPage() {
         status = result.status;
         pollCount++;
         if (status === 'in_progress') {
-          if (pollCount >= 4) setScanStep(3);
+          const maxSteps = steps.length;
+          if (pollCount >= 6) setScanStep(maxSteps - 1);
+          else if (pollCount >= 4) setScanStep(Math.min(3, maxSteps - 1));
           else if (pollCount >= 2) setScanStep(2);
         }
       }
@@ -155,7 +168,7 @@ export function ScanPage() {
           transition={{ duration: 0.6 }}
           className="space-y-4"
         >
-          <p className="text-sm font-semibold uppercase tracking-widest text-cyan-400">
+          <p className="text-sm font-semibold uppercase tracking-widest text-cyan-400 dark:text-cyan-400 text-cyan-600">
             EAA Compliance
           </p>
           <h1 className="text-5xl sm:text-6xl font-extrabold tracking-tight">
@@ -163,9 +176,9 @@ export function ScanPage() {
               30 seconds,
             </span>
             <br />
-            <span className="text-white">not 30 days.</span>
+            <span className="text-white dark:text-white text-slate-900">not 30 days.</span>
           </h1>
-          <p className="text-lg text-slate-400 max-w-lg mx-auto leading-relaxed">
+          <p className="text-lg text-slate-400 dark:text-slate-400 text-slate-600 max-w-lg mx-auto leading-relaxed">
             Paste a URL. Get a full EN&nbsp;301&nbsp;549 compliance report for your
             streaming service — instantly.
           </p>
@@ -203,7 +216,7 @@ export function ScanPage() {
                     disabled={scanning}
                     aria-invalid={error ? 'true' : undefined}
                     aria-describedby={error ? 'url-error' : undefined}
-                    className="w-full rounded-xl border border-slate-700 bg-slate-800/80 pl-12 pr-4 py-4 text-lg text-white placeholder:text-slate-500 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                    className="w-full rounded-xl border border-slate-700 dark:border-slate-700 border-slate-300 bg-slate-800/80 dark:bg-slate-800/80 bg-white/80 pl-12 pr-4 py-4 text-lg text-white dark:text-white text-slate-900 placeholder:text-slate-500 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                   />
                 </div>
                 <AnimatePresence>
@@ -220,6 +233,33 @@ export function ScanPage() {
                     </motion.p>
                   )}
                 </AnimatePresence>
+              </div>
+
+              {/* Deep scan toggle */}
+              <div className="flex items-center justify-between">
+                <label htmlFor="deep-scan" className="flex items-center gap-2 cursor-pointer">
+                  <span className="text-sm text-slate-400 dark:text-slate-400 text-slate-600">
+                    Deep scan
+                  </span>
+                  <span className="text-xs text-slate-500">(up to 5 pages)</span>
+                </label>
+                <button
+                  id="deep-scan"
+                  type="button"
+                  role="switch"
+                  aria-checked={deepScan}
+                  disabled={scanning}
+                  onClick={() => setDeepScan(!deepScan)}
+                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-2 focus:outline-offset-2 focus:outline-brand-400 disabled:opacity-50 disabled:cursor-not-allowed ${
+                    deepScan ? 'bg-brand-500' : 'bg-slate-700 dark:bg-slate-700 bg-slate-300'
+                  }`}
+                >
+                  <span
+                    className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow-lg transition-transform duration-200 ease-in-out ${
+                      deepScan ? 'translate-x-5' : 'translate-x-0'
+                    }`}
+                  />
+                </button>
               </div>
 
               <button
@@ -257,33 +297,33 @@ export function ScanPage() {
 
               {/* Step indicators */}
               <div className="flex justify-center gap-2">
-                {scanSteps.map((step, i) => (
+                {steps.map((step, i) => (
                   <div key={step.label} className="flex items-center gap-2">
                     <div className="flex flex-col items-center gap-1.5">
                       <div
                         className={`h-2.5 w-2.5 rounded-full transition-all duration-500 ${
                           i <= scanStep
                             ? 'bg-brand-400 shadow-sm shadow-brand-400/50'
-                            : 'bg-slate-700'
+                            : 'bg-slate-700 dark:bg-slate-700 bg-slate-300'
                         }`}
                       />
                       <span className={`text-xs transition-colors duration-300 ${
-                        i === scanStep ? 'text-brand-300 font-medium' : 'text-slate-600'
+                        i === scanStep ? 'text-brand-300 dark:text-brand-300 text-brand-600 font-medium' : 'text-slate-600 dark:text-slate-600 text-slate-400'
                       }`}>
                         {step.label}
                       </span>
                     </div>
-                    {i < scanSteps.length - 1 && (
+                    {i < steps.length - 1 && (
                       <div className={`h-px w-8 mb-5 transition-colors duration-500 ${
-                        i < scanStep ? 'bg-brand-500' : 'bg-slate-700'
+                        i < scanStep ? 'bg-brand-500' : 'bg-slate-700 dark:bg-slate-700 bg-slate-300'
                       }`} />
                     )}
                   </div>
                 ))}
               </div>
 
-              <p className="text-slate-400 text-sm">
-                {scanSteps[scanStep].description}...
+              <p className="text-slate-400 dark:text-slate-400 text-slate-600 text-sm">
+                {steps[scanStep].description}...
               </p>
             </motion.div>
           )}
@@ -309,7 +349,7 @@ export function ScanPage() {
                 <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-lg bg-brand-500/10 text-brand-400 font-bold font-mono text-sm">
                   {feature.icon}
                 </div>
-                <h3 className="text-sm font-semibold text-slate-200">
+                <h3 className="text-sm font-semibold text-slate-200 dark:text-slate-200 text-slate-700">
                   {feature.title}
                 </h3>
                 <p className="text-xs text-slate-500 mt-1">{feature.desc}</p>

@@ -2,11 +2,17 @@ import type { ScanReport } from '../types/report';
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? '';
 
-export async function startScan(url: string): Promise<{ id: string }> {
+export interface StartScanOptions {
+  url: string;
+  deepScan?: boolean;
+  maxPages?: number;
+}
+
+export async function startScan(options: StartScanOptions): Promise<{ id: string }> {
   const res = await fetch(`${API_BASE}/api/scan`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ url }),
+    body: JSON.stringify(options),
   });
   if (!res.ok) throw new Error(`Scan request failed: ${res.statusText}`);
   return res.json();
