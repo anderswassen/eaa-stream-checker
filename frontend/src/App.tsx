@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import { ScanPage } from './pages/ScanPage';
 import { ReportPage } from './pages/ReportPage';
+import { HelpPage } from './pages/HelpPage';
 
 const APP_VERSION = '0.0.11';
 
@@ -34,15 +35,24 @@ export default function App() {
                 EAA Stream Checker
               </span>
             </Link>
-            <span className="rounded-full border border-slate-700 bg-slate-800/50 px-2.5 py-0.5 text-xs font-mono text-slate-400">
-              v{APP_VERSION}
-            </span>
+            <div className="flex items-center gap-3">
+              <Link
+                to="/help"
+                className="text-sm text-slate-400 hover:text-white transition-colors focus:outline-2 focus:outline-offset-2 focus:outline-brand-400 rounded"
+              >
+                Help
+              </Link>
+              <span className="rounded-full border border-slate-700 bg-slate-800/50 px-2.5 py-0.5 text-xs font-mono text-slate-400">
+                v{APP_VERSION}
+              </span>
+            </div>
           </nav>
         </header>
 
         <Routes>
           <Route path="/" element={<ScanPage />} />
           <Route path="/report/:id" element={<ReportPage />} />
+          <Route path="/help" element={<HelpPage />} />
         </Routes>
 
         <footer className="border-t border-slate-800/50 py-6 text-center">
