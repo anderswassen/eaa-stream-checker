@@ -1,4 +1,4 @@
-import { resolve, join } from "node:path";
+import { resolve } from "node:path";
 import { existsSync } from "node:fs";
 import Fastify from "fastify";
 import cors from "@fastify/cors";
@@ -8,7 +8,7 @@ import { healthRoutes } from "./routes/health.js";
 import { scanRoutes } from "./routes/scan.js";
 import { reportRoutes } from "./routes/report.js";
 import { mappingRoutes } from "./routes/mappings.js";
-import { closeBrowser, findChromium } from "./services/crawler.js";
+import { closeBrowser } from "./services/crawler.js";
 
 const HOST = process.env.HOST ?? "0.0.0.0";
 const PORT = parseInt(process.env.PORT ?? "8080", 10);
@@ -35,17 +35,6 @@ app.get("/version", async () => ({
   version: APP_VERSION,
   sha: GIT_SHA,
 }));
-
-// Diagnostic endpoint
-app.get("/debug/chromium", async () => {
-  const { execSync } = await import("node:child_process");
-  const chromiumPath = findChromium();
-  let chromiumVersion = "";
-  if (chromiumPath) {
-    try { chromiumVersion = execSync(`${chromiumPath} --version 2>&1`, { timeout: 5000 }).toString().trim(); } catch (e: any) { chromiumVersion = e.message; }
-  }
-  return { chromiumPath: chromiumPath ?? "not found", chromiumVersion };
-});
 
 // Register routes under /api prefix so frontend can proxy cleanly
 await app.register(healthRoutes);
