@@ -15,7 +15,7 @@ COPY package.json package-lock.json* ./
 RUN npm ci
 COPY tsconfig.json ./
 COPY src ./src
-RUN npm run build
+RUN npx tsc
 
 # --- Runtime ---
 FROM mcr.microsoft.com/playwright:v1.58.2-noble
