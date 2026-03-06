@@ -1,11 +1,19 @@
 import { chromium, type Browser, type Page, type BrowserContext } from "playwright-core";
 import sparticuzChromium from "@sparticuz/chromium";
+import { existsSync, readdirSync } from "node:fs";
 
 let browser: Browser | null = null;
 
 async function getBrowser(): Promise<Browser> {
   if (!browser || !browser.isConnected()) {
+    // Debug: check @sparticuz/chromium state
     const executablePath = await sparticuzChromium.executablePath();
+    console.log("Chromium executablePath:", executablePath);
+    console.log("Chromium binary exists:", existsSync(executablePath));
+    try {
+      console.log("/tmp contents:", readdirSync("/tmp").filter(f => f.includes("chrom") || f.includes("playwright")));
+    } catch { /* ignore */ }
+
     browser = await chromium.launch({
       executablePath,
       headless: true,
