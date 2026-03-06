@@ -36,6 +36,21 @@ app.get("/version", async () => ({
   sha: GIT_SHA,
 }));
 
+// Diagnostic endpoint
+app.get("/debug/chromium", async () => {
+  const { existsSync, readdirSync } = await import("node:fs");
+  const sparticuzChromium = (await import("@sparticuz/chromium")).default;
+  const execPath = await sparticuzChromium.executablePath();
+  const tmpFiles = readdirSync("/tmp").filter(f => f.includes("chrom") || f.includes("playwright") || f === "chromium");
+  return {
+    executablePath: execPath,
+    exists: existsSync(execPath),
+    tmpFiles,
+    arch: process.arch,
+    platform: process.platform,
+  };
+});
+
 // Register routes under /api prefix so frontend can proxy cleanly
 await app.register(healthRoutes);
 await app.register(
