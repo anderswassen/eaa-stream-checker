@@ -4,7 +4,7 @@ import { existsSync } from "node:fs";
 let browser: Browser | null = null;
 
 // Find Chromium binary: system install (Alpine) or Playwright default
-export function findChromium(): string | undefined {
+function findChromium(): string | undefined {
   const candidates = [
     "/usr/bin/chromium-browser",
     "/usr/bin/chromium",
@@ -19,7 +19,6 @@ export function findChromium(): string | undefined {
 async function getBrowser(): Promise<Browser> {
   if (!browser || !browser.isConnected()) {
     const executablePath = findChromium();
-    console.log("Using Chromium at:", executablePath ?? "playwright default");
     browser = await chromium.launch({
       ...(executablePath ? { executablePath } : {}),
       headless: true,
