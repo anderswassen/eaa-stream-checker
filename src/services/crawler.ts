@@ -1,18 +1,15 @@
-import { chromium, type Browser, type Page, type BrowserContext } from "playwright";
+import { chromium, type Browser, type Page, type BrowserContext } from "playwright-core";
+import sparticuzChromium from "@sparticuz/chromium";
 
 let browser: Browser | null = null;
 
 async function getBrowser(): Promise<Browser> {
   if (!browser || !browser.isConnected()) {
+    const executablePath = await sparticuzChromium.executablePath();
     browser = await chromium.launch({
+      executablePath,
       headless: true,
-      args: [
-        "--no-sandbox",
-        "--disable-setuid-sandbox",
-        "--disable-dev-shm-usage",
-        "--disable-gpu",
-        "--single-process",
-      ],
+      args: sparticuzChromium.args,
     });
   }
   return browser;

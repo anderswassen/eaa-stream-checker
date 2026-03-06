@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import { ScanPage } from './pages/ScanPage';
 import { ReportPage } from './pages/ReportPage';
 
-const APP_VERSION = '0.0.9';
+const APP_VERSION = '0.0.10';
 
 export default function App() {
   return (

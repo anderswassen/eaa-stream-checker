@@ -1,11 +1,10 @@
 {
   "name": "eaa-stream-checker",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "description": "EAA Stream Checker — accessibility compliance tool for streaming services",
   "type": "module",
   "main": "dist/src/server.js",
   "scripts": {
-    "postinstall": "npx playwright install --with-deps chromium",
     "build": "tsc && cd frontend && npm ci && npm run build && cp -r dist ../public",
     "dev": "tsx watch src/server.ts",
     "start": "node dist/src/server.js",
@@ -17,8 +16,9 @@
     "@axe-core/playwright": "^4.10.1",
     "@fastify/cors": "^10.0.2",
     "@fastify/static": "^9.0.0",
+    "@sparticuz/chromium": "^143.0.4",
     "fastify": "^5.2.1",
-    "playwright": "1.58.2",
+    "playwright-core": "^1.58.2",
     "uuid": "^11.1.0"
   },
   "devDependencies": {

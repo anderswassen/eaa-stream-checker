@@ -1,5 +1,5 @@
 import { AxeBuilder } from "@axe-core/playwright";
-import type { Page } from "playwright";
+import type { Page } from "playwright-core";
 import type { AxeResults, Result, NodeResult } from "axe-core";
 import type { AuditViolation } from "../types/audit.js";
 import { mapWcagCriteriaToClauseIds } from "../mappings/en301549.js";
