@@ -38,13 +38,28 @@ app.get("/version", async () => ({
 
 // Diagnostic endpoint
 app.get("/debug/chromium", async () => {
-  const { existsSync, readdirSync } = await import("node:fs");
+  const { existsSync, readdirSync, statSync } = await import("node:fs");
+  const { execSync } = await import("node:child_process");
   const sparticuzChromium = (await import("@sparticuz/chromium")).default;
   const execPath = await sparticuzChromium.executablePath();
   const tmpFiles = readdirSync("/tmp").filter(f => f.includes("chrom") || f.includes("playwright") || f === "chromium");
+
+  let fileInfo = "";
+  let lddInfo = "";
+  let permissions = "";
+  let launchTest = "";
+  try { fileInfo = execSync(`file ${execPath}`).toString().trim(); } catch (e: any) { fileInfo = e.message; }
+  try { lddInfo = execSync(`ldd ${execPath} 2>&1`).toString().trim(); } catch (e: any) { lddInfo = e.message; }
+  try { const s = statSync(execPath); permissions = `mode=${s.mode.toString(8)}, size=${s.size}`; } catch (e: any) { permissions = e.message; }
+  try { launchTest = execSync(`${execPath} --version 2>&1`, { timeout: 5000 }).toString().trim(); } catch (e: any) { launchTest = e.stderr?.toString() || e.message; }
+
   return {
     executablePath: execPath,
     exists: existsSync(execPath),
+    permissions,
+    fileInfo,
+    lddInfo: lddInfo.slice(0, 2000),
+    launchTest,
     tmpFiles,
     arch: process.arch,
     platform: process.platform,
