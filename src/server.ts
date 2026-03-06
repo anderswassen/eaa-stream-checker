@@ -14,16 +14,18 @@ import { closeBrowser } from "./services/crawler.js";
 const HOST = process.env.HOST ?? "0.0.0.0";
 const PORT = parseInt(process.env.PORT ?? "8080", 10);
 const GIT_SHA = process.env.GIT_SHA ?? "dev";
-const APP_VERSION = "0.0.8";
+const APP_VERSION = "0.0.9";
 
 // Ensure Playwright Chromium is installed
 try {
-  execSync("npx playwright install --with-deps chromium", {
+  console.log("Installing Playwright Chromium...");
+  execSync("npx playwright install chromium", {
     stdio: "inherit",
     timeout: 120000,
   });
+  console.log("Playwright Chromium installed successfully");
 } catch (e) {
-  console.warn("Playwright install failed (may already be available):", e);
+  console.error("Playwright install failed:", e);
 }
 
 const app = Fastify({
