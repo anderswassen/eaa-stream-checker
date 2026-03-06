@@ -20,9 +20,9 @@ export async function startScan(options: StartScanOptions): Promise<{ id: string
 
 export async function getScanStatus(
   id: string,
-): Promise<{ status: ScanReport['status'] }> {
+): Promise<{ status: ScanReport['status']; error?: string }> {
   const res = await fetch(`${API_BASE}/api/scan/${id}`);
-  if (!res.ok) throw new Error(`Status check failed: ${res.statusText}`);
+  if (!res.ok) throw new Error(`Status check failed (HTTP ${res.status})`);
   return res.json();
 }
 

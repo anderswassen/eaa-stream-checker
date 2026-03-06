@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { startScan, getScanStatus } from '../api/client';
+import { ScanActivityLog } from '../components/ScanActivityLog';
 
 function normalizeUrl(value: string): string {
   const trimmed = value.trim();
@@ -135,16 +136,21 @@ export function ScanPage() {
         const result = await getScanStatus(id);
         status = result.status;
         pollCount++;
+        if (status === 'failed') {
+          const serverMsg = result.error;
+          const userMsg = serverMsg?.includes('Executable doesn\'t exist')
+            ? 'The server browser is not properly configured. Please contact support.'
+            : serverMsg
+              ? `Scan failed: ${serverMsg.slice(0, 200)}`
+              : 'Scan failed. Please check the URL and try again.';
+          throw new Error(userMsg);
+        }
         if (status === 'in_progress') {
           const maxSteps = steps.length;
           if (pollCount >= 6) setScanStep(maxSteps - 1);
           else if (pollCount >= 4) setScanStep(Math.min(3, maxSteps - 1));
           else if (pollCount >= 2) setScanStep(2);
         }
-      }
-
-      if (status === 'failed') {
-        throw new Error('Scan failed. Please check the URL and try again.');
       }
 
       navigate(`/report/${id}`);
@@ -237,11 +243,22 @@ export function ScanPage() {
 
               {/* Deep scan toggle */}
               <div className="flex items-center justify-between">
-                <label htmlFor="deep-scan" className="flex items-center gap-2 cursor-pointer">
+                <label htmlFor="deep-scan" className="flex items-center gap-2 cursor-pointer group relative">
                   <span className="text-sm text-slate-600 dark:text-slate-400">
                     Deep scan
                   </span>
                   <span className="text-xs text-slate-500">(up to 5 pages)</span>
+                  <span className="text-slate-400 dark:text-slate-500 cursor-help" aria-hidden="true">
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </span>
+                  <span
+                    role="tooltip"
+                    className="invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-opacity absolute bottom-full left-0 mb-2 w-64 rounded-lg bg-slate-800 dark:bg-slate-700 text-slate-200 text-xs leading-relaxed p-3 shadow-lg z-10 pointer-events-none"
+                  >
+                    Crawls up to 5 internal pages from your site and merges all findings into a single report. Gives a broader compliance picture but takes longer to complete.
+                  </span>
                 </label>
                 <button
                   id="deep-scan"
@@ -325,6 +342,9 @@ export function ScanPage() {
               <p className="text-slate-600 dark:text-slate-400 text-sm">
                 {steps[scanStep].description}...
               </p>
+
+              {/* Terminal activity log */}
+              <ScanActivityLog scanStep={scanStep} deepScan={deepScan} targetUrl={url} />
             </motion.div>
           )}
         </AnimatePresence>
