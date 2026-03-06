@@ -82,6 +82,7 @@ const scanSteps = [
   { label: 'Analyzing', description: 'Running accessibility checks' },
   { label: 'Streaming', description: 'Checking video player compliance' },
   { label: 'Crawling', description: 'Scanning additional pages' },
+  { label: 'Mapping', description: 'Mapping findings to EN 301 549' },
   { label: 'Finalizing', description: 'Generating report' },
 ];
 
@@ -89,6 +90,7 @@ const scanStepsSingle = [
   { label: 'Connecting', description: 'Loading page in browser' },
   { label: 'Analyzing', description: 'Running accessibility checks' },
   { label: 'Streaming', description: 'Checking video player compliance' },
+  { label: 'Mapping', description: 'Mapping findings to EN 301 549' },
   { label: 'Finalizing', description: 'Generating report' },
 ];
 
@@ -150,10 +152,21 @@ export function ScanPage() {
           throw new Error(userMsg);
         }
         if (status === 'in_progress') {
-          const maxSteps = steps.length;
-          if (pollCount >= 6) setScanStep(maxSteps - 1);
-          else if (pollCount >= 4) setScanStep(Math.min(3, maxSteps - 1));
-          else if (pollCount >= 2) setScanStep(2);
+          const last = steps.length - 1;
+          if (deepScan) {
+            // Deep: Connecting→Analyzing(4s)→Streaming(12s)→Crawling(24s)→Mapping(40s)→Finalizing(50s+)
+            if (pollCount >= 25) setScanStep(last);
+            else if (pollCount >= 20) setScanStep(last - 1);
+            else if (pollCount >= 12) setScanStep(3);
+            else if (pollCount >= 6) setScanStep(2);
+            else if (pollCount >= 2) setScanStep(1);
+          } else {
+            // Single: Connecting→Analyzing(6s)→Streaming(16s)→Mapping(26s)→Finalizing(34s+)
+            if (pollCount >= 17) setScanStep(last);
+            else if (pollCount >= 13) setScanStep(last - 1);
+            else if (pollCount >= 8) setScanStep(2);
+            else if (pollCount >= 3) setScanStep(1);
+          }
         }
       }
 

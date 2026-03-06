@@ -122,20 +122,32 @@ const STEP_MESSAGES: Record<number, string[]> = {
     'Clause 7.2.1 — Audio description playback',
     'Clause 7.3 — Player controls for captions/AD',
     'Clause 9.1.1 — Non-text content',
+    'Clause 9.1.3 — Adaptable content',
     'Clause 9.1.4 — Distinguishable content',
     'Clause 9.2.1 — Keyboard accessible',
+    'Clause 9.2.2 — Enough time',
     'Clause 9.2.4 — Navigable',
+    'Clause 9.2.5 — Input modalities',
     'Clause 9.3.1 — Readable',
+    'Clause 9.3.2 — Predictable',
+    'Clause 9.3.3 — Input assistance',
     'Clause 9.4.1 — Compatible',
     'Calculating compliance score...',
     'Generating severity classifications...',
     'Assigning remediation priority...',
+    'Cross-referencing WCAG criteria with EN 301 549...',
     'Generating clause-level recommendations...',
+  ],
+  5: [
     'Capturing screenshot evidence for violations...',
     'Encoding screenshots as base64 JPEG...',
     'Compiling executive summary...',
     'Aggregating pass/fail/review counts...',
+    'Formatting violation evidence...',
+    'Generating fix suggestions for {n} findings...',
     'Building final report structure...',
+    'Calculating per-clause pass rates...',
+    'Preparing report metadata...',
     'Serializing report to JSON ({kb} KB)',
     'Report generation complete',
   ],
@@ -243,8 +255,9 @@ export function ScanActivityLog({ scanStep, deepScan, targetUrl }: ScanActivityL
       const delay = randomInt(800, 2200);
       return setTimeout(() => {
         const currentStep = stepRef.current;
-        const effectiveStep = !deepScan && currentStep >= 3 ? 4 : currentStep;
-        const messages = STEP_MESSAGES[effectiveStep] ?? STEP_MESSAGES[4]!;
+        // In single-page mode, skip step 3 (crawling): 0,1,2 → 3 becomes 4, 4 becomes 5
+        const effectiveStep = !deepScan && currentStep >= 3 ? currentStep + 1 : currentStep;
+        const messages = STEP_MESSAGES[effectiveStep] ?? STEP_MESSAGES[5]!;
 
         let text: string;
         if (msgIndexRef.current < messages.length) {
