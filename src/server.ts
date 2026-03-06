@@ -13,7 +13,7 @@ import { closeBrowser } from "./services/crawler.js";
 const HOST = process.env.HOST ?? "0.0.0.0";
 const PORT = parseInt(process.env.PORT ?? "3000", 10);
 const GIT_SHA = process.env.GIT_SHA ?? "dev";
-const APP_VERSION = "0.0.3";
+const APP_VERSION = "0.0.4";
 
 const app = Fastify({
   logger: {
