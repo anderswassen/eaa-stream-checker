@@ -3,7 +3,7 @@ import { ScanPage } from './pages/ScanPage';
 import { ReportPage } from './pages/ReportPage';
 import { HelpPage } from './pages/HelpPage';
 
-const APP_VERSION = '0.0.11';
+const APP_VERSION = '0.0.12';
 
 export default function App() {
   return (

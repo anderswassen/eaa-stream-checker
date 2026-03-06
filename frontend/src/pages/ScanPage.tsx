@@ -21,12 +21,11 @@ function isValidUrl(value: string): boolean {
 }
 
 const exampleUrls = [
-  'svtplay.se',
-  'tv4play.se',
-  'dplay.se',
-  'hockeyettan.se',
-  'viaplay.se',
-  'cmore.se',
+  'live.hockeyettan.se',
+  'fredriksteenplay.se',
+  'mnhockey.tv',
+  'flyingfinn.tv',
+  'svenskbilsporttv.se',
 ];
 
 function useTypingPlaceholder(urls: string[], typingSpeed = 60, pauseMs = 2000) {
