@@ -26,7 +26,14 @@ export function ClauseSection({ clause }: { clause: Clause }) {
             <span className="font-mono text-sm font-semibold text-brand-600 dark:text-brand-300 shrink-0">
               {clause.clauseId}
             </span>
-            <span className="text-slate-700 dark:text-slate-300 text-sm truncate">{clause.title}</span>
+            <span className="min-w-0">
+              <span className="text-slate-700 dark:text-slate-300 text-sm truncate block">{clause.title}</span>
+              {clause.helpText && (
+                <span className="text-slate-500 dark:text-slate-400 text-xs block mt-0.5 whitespace-normal">
+                  <span aria-hidden="true" className="mr-1">&#8505;</span>{clause.helpText}
+                </span>
+              )}
+            </span>
           </span>
           <svg
             className={`h-4 w-4 shrink-0 text-slate-500 transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}

@@ -22,6 +22,7 @@ interface Clause {
   status: "pass" | "fail" | "needs_review" | "not_applicable";
   findings: Finding[];
   recommendation?: string;
+  helpText?: string;
 }
 
 interface PageScanned {
@@ -108,6 +109,7 @@ export async function reportRoutes(app: FastifyInstance, store: AuditStore) {
           category: "web_content" as const,
           status: violations.length > 0 ? ("fail" as const) : ("pass" as const),
           findings,
+          helpText: clause.helpText,
         };
       }
     );
@@ -129,6 +131,7 @@ export async function reportRoutes(app: FastifyInstance, store: AuditStore) {
               severity: finding.severity,
             },
           ],
+          helpText: finding.helpText,
         });
       }
     }

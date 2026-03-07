@@ -1,4 +1,6 @@
 import type { Page } from 'playwright-core';
+import type { CaptionQualityResult } from './caption-quality.js';
+export type { CaptionQualityResult } from './caption-quality.js';
 
 // --- Player Detection ---
 
@@ -65,6 +67,7 @@ export interface CaptionCheckResult {
   playerApiTracks: PlayerApiTrackInfo[];
   hasCaptions: boolean;
   hasLanguageAttributes: boolean;
+  quality?: CaptionQualityResult;
 }
 
 export interface DomTrackInfo {
@@ -90,13 +93,39 @@ export interface AudioDescriptionCheckResult {
   hasADSelector: boolean;
 }
 
+export interface AudioTrackAnalysis {
+  totalTracks: number;
+  languages: string[];
+  hasAudioDescription: boolean;
+  adLanguages: string[];
+  hasMultipleLanguages: boolean;
+  hasDefaultTrack: boolean;
+  languagesMissingAD: string[];
+}
+
 // --- Player Accessibility ---
+
+export interface ContrastResult {
+  controlsChecked: number;
+  controlsBelowMinimum: number;  // below 3:1
+  controlsBelowEnhanced: number; // below 4.5:1
+  lowestRatio: number;
+  details: Array<{ selector: string; ratio: number; foreground: string; background: string }>;
+}
+
+export interface TouchTargetResult {
+  controlsChecked: number;
+  undersizedControls: Array<{ selector: string; width: number; height: number }>;
+  allMeetMinimum: boolean;
+}
 
 export interface PlayerAccessibilityResult {
   keyboardNavigation: KeyboardNavigationResult;
   ariaLabels: AriaLabelResult;
   focusIndicators: FocusIndicatorResult;
   captionCustomization: CaptionCustomizationResult;
+  controlContrast?: ContrastResult;
+  touchTargets?: TouchTargetResult;
 }
 
 export interface KeyboardNavigationResult {
@@ -148,6 +177,7 @@ export interface StreamingFinding {
   description: string;
   evidence: string;
   severity: Severity;
+  helpText?: string;
 }
 
 // --- Top-level Result ---

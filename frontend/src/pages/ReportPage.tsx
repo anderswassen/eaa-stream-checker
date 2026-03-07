@@ -8,6 +8,7 @@ import { ScoreGauge } from '../components/ScoreGauge';
 import { FilterBar } from '../components/FilterBar';
 import { ReportTOC } from '../components/ReportTOC';
 import { exportPdf } from '../utils/pdfExport';
+import { exportVpat } from '../utils/vpatExport';
 
 const overallLabels: Record<ScanReport['summary']['overallStatus'], string> = {
   compliant: 'Compliant',
@@ -40,6 +41,7 @@ export function ReportPage() {
   const [report, setReport] = useState<ScanReport | null>(null);
   const [error, setError] = useState('');
   const [exportingPdf, setExportingPdf] = useState(false);
+  const [exportingVpat, setExportingVpat] = useState(false);
   const [revealed, setRevealed] = useState(false);
   const headingRef = useRef<HTMLHeadingElement>(null);
 
@@ -147,6 +149,16 @@ export function ReportPage() {
       await exportPdf(report);
     } finally {
       setExportingPdf(false);
+    }
+  }
+
+  async function handleExportVpat() {
+    if (!report) return;
+    setExportingVpat(true);
+    try {
+      await exportVpat(report);
+    } finally {
+      setExportingVpat(false);
     }
   }
 
@@ -372,6 +384,16 @@ export function ReportPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
                 {exportingPdf ? 'Generating PDF...' : 'Download PDF'}
+              </button>
+              <button
+                onClick={handleExportVpat}
+                disabled={exportingVpat}
+                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-purple-600 to-brand-500 px-5 py-2.5 text-sm font-semibold text-white hover:from-purple-500 hover:to-brand-400 focus:outline-2 focus:outline-offset-2 focus:outline-brand-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-purple-500/20"
+              >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                {exportingVpat ? 'Generating VPAT...' : 'Export VPAT / ACR'}
               </button>
               <button
                 onClick={handleExportJson}

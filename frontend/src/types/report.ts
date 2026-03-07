@@ -13,6 +13,7 @@ export interface Clause {
   status: 'pass' | 'fail' | 'needs_review' | 'not_applicable';
   findings: Finding[];
   recommendation?: string;
+  helpText?: string;
 }
 
 export interface PageScanned {

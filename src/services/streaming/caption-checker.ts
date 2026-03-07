@@ -5,6 +5,7 @@ import type {
   ManifestInfo,
   PlayerApiTrackInfo,
 } from './types.js';
+import { analyzeCaptionQuality, type CaptionSource } from './caption-quality.js';
 
 async function checkDomTracks(page: Page): Promise<DomTrackInfo[]> {
   return page.evaluate(() => {
@@ -105,11 +106,44 @@ export async function checkCaptions(
     (t) => t.srclang !== null && t.srclang !== ''
   );
 
+  // Gather caption source URLs for quality analysis
+  const captionSources: CaptionSource[] = [];
+
+  for (const track of domTracks) {
+    if (track.src) {
+      captionSources.push({
+        url: track.src,
+        language: track.srclang ?? undefined,
+        source: 'dom',
+      });
+    }
+  }
+
+  for (const track of manifestTracks) {
+    if (track.uri) {
+      captionSources.push({
+        url: track.uri,
+        language: track.language ?? undefined,
+        source: 'manifest',
+      });
+    }
+  }
+
+  // Manifest base URLs for resolving relative URIs
+  const manifestBaseUrls = manifests.map((m) => m.url);
+
+  // Run quality analysis if we have any downloadable caption sources
+  let quality;
+  if (captionSources.length > 0) {
+    quality = await analyzeCaptionQuality(page, captionSources, manifestBaseUrls);
+  }
+
   return {
     domTracks,
     manifestTracks,
     playerApiTracks,
     hasCaptions,
     hasLanguageAttributes: hasCaptions ? hasLanguageAttributes : true,
+    quality,
   };
 }

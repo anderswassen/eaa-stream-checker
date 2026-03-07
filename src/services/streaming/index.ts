@@ -3,7 +3,7 @@ import type { StreamingAnalysisResult } from './types.js';
 import { detectPlayers } from './player-detector.js';
 import { interceptManifests, parseManifests } from './manifest-parser.js';
 import { checkCaptions } from './caption-checker.js';
-import { checkAudioDescription } from './audio-description-checker.js';
+import { checkAudioDescription, analyzeAudioTracks } from './audio-description-checker.js';
 import { checkPlayerAccessibility } from './player-accessibility.js';
 import { mapToClause7 } from './clause7-mapper.js';
 
@@ -75,13 +75,20 @@ async function runAnalysis(
     playerAccessibility = await checkPlayerAccessibility(page, primaryPlayer);
   }
 
+  // Step 3.5: Analyze audio tracks for multi-language coverage
+  const audioTrackAnalysis = analyzeAudioTracks(
+    manifests,
+    audioDescription.domDescriptionTracks
+  );
+
   // Step 4: Map findings to EN 301 549 Clause 7
   const findings = mapToClause7(
     captions,
     audioDescription,
     playerAccessibility,
     manifests,
-    playerDetected
+    playerDetected,
+    audioTrackAnalysis
   );
 
   return {

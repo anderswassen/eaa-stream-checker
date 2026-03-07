@@ -1,6 +1,7 @@
 import type { Page } from 'playwright-core';
 import type {
   AudioDescriptionCheckResult,
+  AudioTrackAnalysis,
   DomTrackInfo,
   ManifestInfo,
   ManifestAudioTrack,
@@ -99,5 +100,60 @@ export async function checkAudioDescription(
     manifestADTracks,
     hasAudioDescription,
     hasADSelector,
+  };
+}
+
+export function analyzeAudioTracks(
+  manifests: ManifestInfo[],
+  domDescriptionTracks: DomTrackInfo[]
+): AudioTrackAnalysis {
+  // Collect all audio tracks from manifests
+  const allAudioTracks = manifests.flatMap((m) => m.audioTracks);
+
+  // Normalize language codes to lowercase for comparison
+  const normalizeLang = (lang: string | null): string =>
+    (lang || 'unknown').toLowerCase().trim();
+
+  // Collect unique languages for main (non-AD) audio tracks
+  const mainLanguages = new Set<string>();
+  const adLanguages = new Set<string>();
+  let hasDefault = false;
+
+  for (const track of allAudioTracks) {
+    const lang = normalizeLang(track.language);
+    if (track.isAudioDescription) {
+      adLanguages.add(lang);
+    } else {
+      mainLanguages.add(lang);
+    }
+    if (track.isDefault) {
+      hasDefault = true;
+    }
+  }
+
+  // Also count DOM description tracks
+  for (const domTrack of domDescriptionTracks) {
+    const lang = normalizeLang(domTrack.srclang);
+    adLanguages.add(lang);
+  }
+
+  // Find languages that have main audio but no corresponding AD
+  const languagesMissingAD: string[] = [];
+  for (const lang of mainLanguages) {
+    if (!adLanguages.has(lang)) {
+      languagesMissingAD.push(lang);
+    }
+  }
+
+  const allLanguages = new Set([...mainLanguages, ...adLanguages]);
+
+  return {
+    totalTracks: allAudioTracks.length,
+    languages: Array.from(allLanguages).sort(),
+    hasAudioDescription: adLanguages.size > 0,
+    adLanguages: Array.from(adLanguages).sort(),
+    hasMultipleLanguages: allLanguages.size > 1,
+    hasDefaultTrack: hasDefault,
+    languagesMissingAD: languagesMissingAD.sort(),
   };
 }
