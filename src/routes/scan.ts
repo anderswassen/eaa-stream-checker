@@ -203,7 +203,7 @@ async function runScan(
           console.warn(`Deep scan page failed (${pageUrl}):`, pageErr);
           pageResults.push({
             url: pageUrl,
-            title: "Failed to load",
+            title: `Could not access — ${pageErr instanceof Error ? pageErr.message.slice(0, 80) : "unknown error"}`,
             violationCount: 0,
             duration: Date.now() - pageStart,
           });
