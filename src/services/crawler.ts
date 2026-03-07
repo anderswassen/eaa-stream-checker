@@ -1,18 +1,31 @@
 import { chromium, type Browser, type Page, type BrowserContext } from "playwright-core";
 import { existsSync } from "node:fs";
 import { execSync } from "node:child_process";
+import { resolve } from "node:path";
 
 let browser: Browser | null = null;
+
+const LAUNCH_ARGS = [
+  "--no-sandbox",
+  "--disable-setuid-sandbox",
+  "--disable-dev-shm-usage",
+  "--disable-gpu",
+  "--disable-software-rasterizer",
+  "--no-zygote",
+];
 
 // Find Chromium binary: system install (Alpine/Debian) or Playwright default
 function findChromium(): string | undefined {
   const candidates = [
     "/usr/bin/chromium-browser",
     "/usr/bin/chromium",
+    "/usr/lib/chromium/chromium",
+    "/usr/lib/chromium-browser/chromium-browser",
     "/usr/bin/google-chrome",
     "/usr/bin/google-chrome-stable",
     "/usr/bin/google-chrome-unstable",
     "/snap/bin/chromium",
+    "/opt/chromium/chrome",
   ];
   for (const path of candidates) {
     if (existsSync(path)) {
@@ -22,7 +35,10 @@ function findChromium(): string | undefined {
   }
   // Try `which chromium` as last resort
   try {
-    const result = execSync("which chromium 2>/dev/null || which chromium-browser 2>/dev/null", { encoding: "utf8" }).trim();
+    const result = execSync(
+      "which chromium 2>/dev/null || which chromium-browser 2>/dev/null || which google-chrome 2>/dev/null",
+      { encoding: "utf8" }
+    ).trim();
     if (result && existsSync(result)) {
       console.log(`[crawler] Found Chromium via which: ${result}`);
       return result;
@@ -30,26 +46,75 @@ function findChromium(): string | undefined {
   } catch {
     // ignore
   }
-  console.warn("[crawler] No system Chromium found, falling back to playwright-core default");
+  console.warn("[crawler] No system Chromium found");
+  return undefined;
+}
+
+/**
+ * Attempt to install Chromium at runtime (last resort).
+ * Only works if apk/apt is available and user has permissions.
+ */
+function tryRuntimeInstall(): string | undefined {
+  console.log("[crawler] Attempting runtime Chromium install...");
+
+  // Alpine
+  if (existsSync("/etc/alpine-release")) {
+    try {
+      const ver = execSync("cat /etc/alpine-release", { encoding: "utf8" }).trim().split(".").slice(0, 2).join(".");
+      const repo = `https://dl-cdn.alpinelinux.org/alpine/v${ver}/community`;
+      console.log(`[crawler] Alpine ${ver} detected, trying apk add with community repo...`);
+      execSync(
+        `apk add --no-cache --repository=${repo} chromium nss freetype harfbuzz ca-certificates ttf-freefont 2>&1`,
+        { encoding: "utf8", timeout: 120000 }
+      );
+      const path = findChromium();
+      if (path) return path;
+    } catch (err) {
+      console.warn(`[crawler] Runtime apk install failed: ${err instanceof Error ? err.message : err}`);
+    }
+  }
+
+  // Playwright-core install (works on glibc systems like Ubuntu/Debian)
+  try {
+    console.log("[crawler] Trying npx playwright-core install chromium...");
+    execSync("npx playwright-core install chromium 2>&1", {
+      encoding: "utf8",
+      timeout: 120000,
+    });
+    console.log("[crawler] playwright-core install completed");
+    return undefined; // Let playwright-core use its default path
+  } catch (err) {
+    console.warn(`[crawler] playwright-core install failed: ${err instanceof Error ? err.message : err}`);
+  }
+
   return undefined;
 }
 
 async function getBrowser(): Promise<Browser> {
   if (!browser || !browser.isConnected()) {
-    const executablePath = findChromium();
+    let executablePath = findChromium();
+
+    // First attempt
+    try {
+      browser = await chromium.launch({
+        ...(executablePath ? { executablePath } : {}),
+        headless: true,
+        args: LAUNCH_ARGS,
+      });
+      console.log(`[crawler] Browser launched successfully${executablePath ? ` (${executablePath})` : ""}`);
+      return browser;
+    } catch (firstErr) {
+      console.warn(`[crawler] First launch attempt failed: ${firstErr instanceof Error ? firstErr.message.slice(0, 120) : firstErr}`);
+    }
+
+    // Try runtime install and retry
+    executablePath = tryRuntimeInstall();
     browser = await chromium.launch({
       ...(executablePath ? { executablePath } : {}),
       headless: true,
-      args: [
-        "--no-sandbox",
-        "--disable-setuid-sandbox",
-        "--disable-dev-shm-usage",
-        "--disable-gpu",
-        "--disable-software-rasterizer",
-        "--no-zygote",
-      ],
+      args: LAUNCH_ARGS,
     });
-    console.log(`[crawler] Browser launched successfully`);
+    console.log(`[crawler] Browser launched after runtime install${executablePath ? ` (${executablePath})` : ""}`);
   }
   return browser;
 }

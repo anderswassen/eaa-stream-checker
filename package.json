@@ -1,11 +1,11 @@
 {
   "name": "eaa-stream-checker",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "EAA Stream Checker — accessibility compliance tool for streaming services",
   "type": "module",
   "main": "dist/src/server.js",
   "scripts": {
-    "postinstall": "(apk add --no-cache chromium nss freetype harfbuzz ca-certificates ttf-freefont 2>/dev/null || npx playwright-core install --with-deps chromium 2>/dev/null) || true",
+    "postinstall": "if [ -f /etc/alpine-release ]; then ALPINE_VER=$(cat /etc/alpine-release | cut -d. -f1,2); echo \"[postinstall] Alpine ${ALPINE_VER}\"; apk add --no-cache --repository=https://dl-cdn.alpinelinux.org/alpine/v${ALPINE_VER}/community chromium nss freetype harfbuzz ca-certificates ttf-freefont 2>&1 || apk add --no-cache chromium nss freetype harfbuzz ca-certificates ttf-freefont 2>&1; elif command -v apt-get >/dev/null 2>&1; then npx playwright-core install --with-deps chromium 2>&1; else npx playwright-core install chromium 2>&1; fi || true",
     "build": "tsc",
     "dev": "tsx watch src/server.ts",
     "start": "node dist/src/server.js",
