@@ -8,8 +8,14 @@ export class PgStore {
   private pool: pg.Pool;
 
   constructor(connectionString: string) {
+    // Parse connection string to handle special characters in password
+    const url = new URL(connectionString);
     this.pool = new Pool({
-      connectionString,
+      host: url.hostname,
+      port: parseInt(url.port, 10) || 5432,
+      user: decodeURIComponent(url.username),
+      password: decodeURIComponent(url.password),
+      database: url.pathname.slice(1) || "postgres",
       max: 5,
       idleTimeoutMillis: 30_000,
       connectionTimeoutMillis: 10_000,

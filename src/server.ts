@@ -36,13 +36,16 @@ await app.register(cors, { origin: true });
 let store: AuditStore | PersistentStore;
 
 if (DATABASE_URL) {
+  // Mask password in log output
+  const safeUrl = DATABASE_URL.replace(/:([^@]+)@/, ":***@");
+  app.log.info(`DATABASE_URL detected: ${safeUrl}`);
   const pgStore = new PersistentStore(DATABASE_URL);
   try {
     await pgStore.init();
     store = pgStore;
     app.log.info("Connected to PostgreSQL — scan history enabled");
   } catch (err) {
-    app.log.warn({ err }, "Failed to connect to PostgreSQL, falling back to in-memory store");
+    app.log.error({ err }, "Failed to connect to PostgreSQL, falling back to in-memory store");
     store = new Map();
   }
 } else {
@@ -55,6 +58,7 @@ app.get("/version", async () => ({
   version: APP_VERSION,
   sha: GIT_SHA,
   persistence: isPersistedStore(store) ? "postgresql" : "memory",
+  databaseConfigured: !!DATABASE_URL,
 }));
 
 // Register routes under /api prefix so frontend can proxy cleanly
