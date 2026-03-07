@@ -230,6 +230,10 @@ export function ScanPage() {
                     id="url-input"
                     type="text"
                     inputMode="url"
+                    autoComplete="url"
+                    autoCorrect="off"
+                    autoCapitalize="off"
+                    spellCheck={false}
                     value={url}
                     onChange={(e) => {
                       setUrl(e.target.value);
