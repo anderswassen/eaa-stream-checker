@@ -68,6 +68,7 @@ export function FilterBar({
 
   const severityCounts = { critical: 0, major: 0, minor: 0 };
   for (const c of clauses) {
+    if (c.status === 'pass' || c.status === 'not_applicable') continue;
     for (const f of c.findings) {
       severityCounts[f.severity]++;
     }

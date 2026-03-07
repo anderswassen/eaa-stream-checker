@@ -1,5 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import type { AuditStore, AuditViolation } from "../types/audit.js";
+import { isPersistedStore } from "../store/index.js";
 import { getAllClause9Mappings } from "../mappings/en301549.js";
 import type { StreamingFinding } from "../services/streaming/types.js";
 
@@ -64,7 +65,10 @@ function mapImpactToSeverity(
 
 export async function reportRoutes(app: FastifyInstance, store: AuditStore) {
   app.get<{ Params: { id: string } }>("/report/:id", async (request, reply) => {
-    const audit = store.get(request.params.id);
+    // Use async get for PersistentStore (can fetch from PG if not in cache)
+    const audit = isPersistedStore(store)
+      ? await store.getAsync(request.params.id)
+      : store.get(request.params.id);
     if (!audit) {
       return reply.status(404).send({ error: "Scan not found" });
     }

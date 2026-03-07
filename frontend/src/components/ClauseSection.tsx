@@ -62,7 +62,7 @@ export function ClauseSection({ clause }: { clause: Clause }) {
               {clause.findings.map((finding, i) => (
                 <div key={i} className="space-y-1.5">
                   <div className="flex items-start gap-2">
-                    <SeverityBadge severity={finding.severity} />
+                    <SeverityBadge severity={finding.severity} muted={clause.status === 'pass' || clause.status === 'not_applicable'} />
                     <div className="min-w-0">
                       <p className="text-slate-700 dark:text-slate-300 text-sm leading-relaxed">{finding.description}</p>
                       {finding.pageUrl && (

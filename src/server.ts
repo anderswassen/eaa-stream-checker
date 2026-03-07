@@ -4,16 +4,20 @@ import Fastify from "fastify";
 import cors from "@fastify/cors";
 import fastifyStatic from "@fastify/static";
 import type { AuditStore } from "./types/audit.js";
+import { PersistentStore, isPersistedStore } from "./store/index.js";
 import { healthRoutes } from "./routes/health.js";
 import { scanRoutes } from "./routes/scan.js";
 import { reportRoutes } from "./routes/report.js";
 import { mappingRoutes } from "./routes/mappings.js";
+import { historyRoutes } from "./routes/history.js";
+import { scoreRoutes } from "./routes/score.js";
 import { closeBrowser } from "./services/crawler.js";
 
 const HOST = process.env.HOST ?? "0.0.0.0";
 const PORT = parseInt(process.env.PORT ?? "8080", 10);
 const GIT_SHA = process.env.GIT_SHA ?? "dev";
-const APP_VERSION = "0.3.0";
+const APP_VERSION = "0.3.1";
+const DATABASE_URL = process.env.DATABASE_URL;
 
 const app = Fastify({
   logger: {
@@ -27,13 +31,29 @@ const app = Fastify({
 // CORS for frontend dev server
 await app.register(cors, { origin: true });
 
-// In-memory audit store (will be replaced with PostgreSQL later)
-const store: AuditStore = new Map();
+// Store: PostgreSQL if DATABASE_URL is set, otherwise in-memory
+let store: AuditStore | PersistentStore;
+
+if (DATABASE_URL) {
+  const pgStore = new PersistentStore(DATABASE_URL);
+  try {
+    await pgStore.init();
+    store = pgStore;
+    app.log.info("Connected to PostgreSQL — scan history enabled");
+  } catch (err) {
+    app.log.warn({ err }, "Failed to connect to PostgreSQL, falling back to in-memory store");
+    store = new Map();
+  }
+} else {
+  store = new Map();
+  app.log.info("No DATABASE_URL set — using in-memory store (scan history disabled)");
+}
 
 // Version endpoint
 app.get("/version", async () => ({
   version: APP_VERSION,
   sha: GIT_SHA,
+  persistence: isPersistedStore(store) ? "postgresql" : "memory",
 }));
 
 // Register routes under /api prefix so frontend can proxy cleanly
@@ -43,6 +63,12 @@ await app.register(
     await scanRoutes(instance, store);
     await reportRoutes(instance, store);
     await instance.register(mappingRoutes);
+
+    // History & score routes only available with PostgreSQL
+    if (isPersistedStore(store)) {
+      await historyRoutes(instance, store);
+      await scoreRoutes(instance, store);
+    }
   },
   { prefix: "/api" }
 );
@@ -66,6 +92,9 @@ if (existsSync(frontendDist)) {
 const shutdown = async (signal: string) => {
   app.log.info(`Received ${signal}, shutting down...`);
   await closeBrowser();
+  if (isPersistedStore(store)) {
+    await store.close();
+  }
   await app.close();
   process.exit(0);
 };

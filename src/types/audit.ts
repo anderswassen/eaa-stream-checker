@@ -67,4 +67,10 @@ export interface ScanReport {
   }[];
 }
 
-export type AuditStore = Map<string, AuditResult>;
+/** Minimal store interface satisfied by both Map and PersistentStore. */
+export interface AuditStore {
+  get(id: string): AuditResult | undefined;
+  set(id: string, audit: AuditResult): unknown;
+  has?(id: string): boolean;
+  values(): IterableIterator<AuditResult>;
+}

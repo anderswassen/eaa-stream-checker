@@ -113,6 +113,8 @@ export function ReportPage() {
     if (statusFilter.size > 0 && !statusFilter.has(c.status)) return false;
     if (categoryFilter.size > 0 && !categoryFilter.has(c.category)) return false;
     if (severityFilter.size > 0) {
+      // Severity filter only applies to non-pass clauses (actual issues)
+      if (c.status === 'pass' || c.status === 'not_applicable') return false;
       const hasSeverity = c.findings.some((f) => severityFilter.has(f.severity));
       if (!hasSeverity && c.findings.length > 0) return false;
       if (c.findings.length === 0 && !severityFilter.has('minor')) return false;
@@ -366,7 +368,7 @@ export function ReportPage() {
                         <div
                           key={clause.clauseId}
                           id={`clause-section-${clause.clauseId}`}
-                          className={revealed ? 'clause-reveal' : 'opacity-0'}
+                          className={`scroll-mt-24 ${revealed ? 'clause-reveal' : 'opacity-0'}`}
                           style={revealed ? { animationDelay: `${i * 60}ms` } : undefined}
                         >
                           <ClauseSection clause={clause} />
@@ -397,7 +399,7 @@ export function ReportPage() {
                         <div
                           key={clause.clauseId}
                           id={`clause-section-${clause.clauseId}`}
-                          className={revealed ? 'clause-reveal' : 'opacity-0'}
+                          className={`scroll-mt-24 ${revealed ? 'clause-reveal' : 'opacity-0'}`}
                           style={revealed ? { animationDelay: `${(videoClauses.length + i) * 60}ms` } : undefined}
                         >
                           <ClauseSection clause={clause} />
