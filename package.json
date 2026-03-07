@@ -1,12 +1,12 @@
 {
   "name": "eaa-stream-checker",
-  "version": "0.0.19",
+  "version": "0.0.20",
   "description": "EAA Stream Checker — accessibility compliance tool for streaming services",
   "type": "module",
   "main": "dist/src/server.js",
   "scripts": {
     "postinstall": "apk add --no-cache chromium nss freetype harfbuzz ca-certificates ttf-freefont 2>/dev/null || true",
-    "build": "tsc && cd frontend && npm ci && npm run build && cp -r dist ../public",
+    "build": "tsc",
     "dev": "tsx watch src/server.ts",
     "start": "node dist/src/server.js",
     "typecheck": "tsc --noEmit",
