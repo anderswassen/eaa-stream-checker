@@ -80,10 +80,14 @@ export function HelpPage() {
               </div>
               <ul className="text-xs text-slate-400 space-y-1 ml-9 list-disc">
                 <li>Captions (subtitles) for pre-recorded and live content</li>
+                <li>Caption synchronization and quality analysis</li>
                 <li>Audio description for visual information</li>
-                <li>Accessible video player controls</li>
+                <li>Accessible video player controls (ARIA, focus, contrast, touch targets)</li>
                 <li>Keyboard operability of all player functions</li>
                 <li>User control over caption presentation</li>
+                <li>DRM that doesn't block accessibility features</li>
+                <li>Iframe player accessibility</li>
+                <li>Adaptive bitrate accessibility across quality levels</li>
               </ul>
             </div>
             <div className="rounded-xl bg-slate-100/50 dark:bg-slate-800/50 border border-slate-200/50 dark:border-slate-700/50 p-4 space-y-2">
@@ -120,23 +124,51 @@ export function HelpPage() {
             {[
               {
                 title: 'Automated WCAG 2.1 AA audit',
-                desc: 'The tool runs a comprehensive axe-core analysis against your web content, mapping every finding directly to the relevant EN 301 549 clauses. Issues that would take days to identify manually are surfaced instantly.',
+                desc: 'Runs a comprehensive axe-core analysis against your web content, mapping every finding directly to the relevant EN 301 549 clauses. Issues that would take days to identify manually are surfaced instantly.',
               },
               {
                 title: 'Streaming player analysis',
-                desc: 'The tool inspects your video player for caption support, audio description tracks, keyboard accessibility, and player control compliance — requirements specific to Clause 7 that generic accessibility tools typically miss entirely.',
+                desc: 'Inspects your video player for caption support, audio description tracks, keyboard accessibility, and player control compliance — requirements specific to Clause 7 that generic accessibility tools typically miss entirely.',
+              },
+              {
+                title: 'Caption quality analysis',
+                desc: 'Downloads and parses WebVTT, SRT, and TTML caption files to validate timestamp sequencing, detect overlapping or empty cues, check for excessive gaps, and assess synchronization quality.',
+              },
+              {
+                title: 'Player control accessibility',
+                desc: 'Checks that all player controls have ARIA labels for screen readers, visible focus indicators for keyboard users, sufficient color contrast (WCAG 1.4.11), and minimum touch target sizes (WCAG 2.5.8).',
+              },
+              {
+                title: 'DRM & playback restrictions check',
+                desc: 'Detects Encrypted Media Extensions (EME) usage and DRM systems (Widevine, FairPlay, PlayReady). Verifies that captions are delivered outside the DRM envelope so accessibility features remain functional.',
+              },
+              {
+                title: 'Live stream vs VOD detection',
+                desc: 'Analyzes HLS/DASH manifests and page indicators to determine if content is live or on-demand. For live streams, verifies that real-time captioning is provided (with appropriate delay tolerance).',
+              },
+              {
+                title: 'Iframe player accessibility',
+                desc: 'Checks embedded player iframes for title attributes, fullscreen permissions, and sandbox restrictions that could block keyboard interaction or accessibility features.',
+              },
+              {
+                title: 'Adaptive bitrate quality check',
+                desc: 'Verifies that captions and audio descriptions remain available at all quality levels, including the lowest bitrate, ensuring users on slow connections still have access to accessibility features.',
               },
               {
                 title: 'Manifest inspection',
-                desc: 'HLS and DASH manifests are parsed to verify the presence of subtitle tracks and alternative audio tracks at the source level, before they even reach the player.',
+                desc: 'HLS and DASH manifests are parsed to verify the presence of subtitle tracks, alternative audio tracks, and audio description at the source level, before they even reach the player.',
               },
               {
-                title: 'EN 301 549 clause mapping',
-                desc: 'Every finding is mapped to its corresponding EN 301 549 clause, giving you a report that speaks the same language as the regulation. This is the format auditors and legal teams expect.',
+                title: 'Multi-language audio track analysis',
+                desc: 'Identifies all available audio tracks and languages, checks audio description coverage per language, and flags languages that have main audio but lack corresponding audio description.',
               },
               {
-                title: 'Exportable compliance reports',
-                desc: 'Reports can be exported as PDF or JSON, suitable for internal documentation, regulatory submissions, or evidence in conformity assessments.',
+                title: 'EN 301 549 clause mapping with help text',
+                desc: 'Every finding is mapped to its corresponding EN 301 549 clause with plain-language explanations. Each clause includes help text explaining what it means and why it matters — the format auditors and legal teams expect.',
+              },
+              {
+                title: 'Exportable compliance reports (PDF, JSON, VPAT)',
+                desc: 'Reports can be exported as PDF for documentation, JSON for integration with internal systems, or as a VPAT 2.5 EU Edition — the industry-standard Accessibility Conformance Report format used for procurement and regulatory submissions.',
               },
             ].map((item) => (
               <li key={item.title} className="flex gap-3">
@@ -148,6 +180,44 @@ export function HelpPage() {
               </li>
             ))}
           </ul>
+        </motion.section>
+
+        {/* Clause 7 checks detail */}
+        <motion.section variants={fadeUp} className="glass rounded-2xl p-6 sm:p-8 space-y-4">
+          <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200">
+            Clause 7 Checks Performed
+          </h2>
+          <p className="text-sm text-slate-400 leading-relaxed">
+            The tool evaluates 15 specific EN 301 549 Clause 7 requirements automatically:
+          </p>
+          <div className="space-y-2 pt-2">
+            {[
+              { id: '7.1.1', title: 'Captioning playback', desc: 'Verifies caption/subtitle tracks exist in DOM, manifests, and player API.' },
+              { id: '7.1.2', title: 'Captioning synchronization', desc: 'Downloads and analyzes caption files for timestamp issues, overlaps, and gaps.' },
+              { id: '7.1.3', title: 'Preservation of captioning', desc: 'Checks that captions are present in streaming manifests (not just sidecar).' },
+              { id: '7.1.4', title: 'Captioning characteristics', desc: 'Looks for caption customization controls (font size, color, background, position).' },
+              { id: '7.1.5', title: 'Live caption delivery', desc: 'For live streams, verifies real-time captions are provided.' },
+              { id: '7.2.1', title: 'Audio description playback', desc: 'Detects AD tracks in DOM, manifests, and player UI selectors.' },
+              { id: '7.2.2', title: 'Audio description synchronization', desc: 'Flags AD tracks for manual sync verification.' },
+              { id: '7.2.3', title: 'Preservation of audio description', desc: 'Checks that AD tracks are in streaming manifests.' },
+              { id: '7.3', title: 'User controls for captions and AD', desc: 'Verifies keyboard access to caption/AD toggles at the same level as play controls.' },
+              { id: '7.4.1', title: 'Player controls: ARIA labels', desc: 'Checks all player buttons have accessible names for screen readers.' },
+              { id: '7.4.2', title: 'Player controls: Focus indicators', desc: 'Verifies visible focus indicators on interactive controls.' },
+              { id: '7.4.3', title: 'Player controls: Contrast', desc: 'Measures control contrast ratios against WCAG 1.4.11 (3:1 minimum).' },
+              { id: '7.4.4', title: 'Player controls: Touch targets', desc: 'Checks minimum 24x24px touch target size per WCAG 2.5.8.' },
+              { id: '7.5.1', title: 'DRM accessibility', desc: 'Verifies DRM does not prevent access to captions and accessibility features.' },
+              { id: '7.5.2', title: 'Iframe player accessibility', desc: 'Checks embedded player iframes for title, fullscreen, and sandbox issues.' },
+              { id: '7.5.3', title: 'Adaptive bitrate accessibility', desc: 'Verifies accessibility features at all streaming quality levels.' },
+            ].map((clause) => (
+              <div key={clause.id} className="flex gap-3 items-start rounded-lg bg-slate-100/30 dark:bg-slate-800/30 px-3 py-2">
+                <span className="text-xs font-mono font-bold text-brand-400 shrink-0 w-10 pt-0.5">{clause.id}</span>
+                <div>
+                  <span className="text-sm font-medium text-slate-800 dark:text-slate-200">{clause.title}</span>
+                  <p className="text-xs text-slate-400 mt-0.5">{clause.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
         </motion.section>
 
         {/* Important note */}
@@ -178,10 +248,11 @@ export function HelpPage() {
           <ol className="space-y-3 pt-1">
             {[
               { step: '1', text: 'Enter the URL of your streaming service on the home page and press "Check Compliance".' },
-              { step: '2', text: 'The tool loads your site in a headless browser, runs WCAG 2.1 AA checks, and analyses the video player and streaming manifests.' },
-              { step: '3', text: 'Review the compliance report. Each finding is categorised by EN 301 549 clause, severity, and status (pass, fail, or needs review).' },
-              { step: '4', text: 'Export the report as PDF for documentation, or as JSON for integration with your internal systems.' },
-              { step: '5', text: 'Address the identified issues and re-scan to verify remediation.' },
+              { step: '2', text: 'Optionally enable "Deep scan" to crawl internal pages for a broader assessment.' },
+              { step: '3', text: 'The tool loads your site in a headless browser, runs WCAG 2.1 AA checks, analyses the video player, streaming manifests, captions, DRM, and embedded iframes.' },
+              { step: '4', text: 'Review the compliance report. Each finding is categorised by EN 301 549 clause, severity, and status (pass, fail, or needs review). Hover or expand clauses to see plain-language help text.' },
+              { step: '5', text: 'Export as PDF for documentation, JSON for internal systems, or VPAT 2.5 EU Edition for procurement and regulatory submissions.' },
+              { step: '6', text: 'Address the identified issues and re-scan to verify remediation.' },
             ].map((item) => (
               <li key={item.step} className="flex gap-3">
                 <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-500/10 text-brand-400 text-xs font-bold font-mono">
