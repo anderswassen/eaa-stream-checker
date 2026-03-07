@@ -5,6 +5,8 @@ export type { DrmCheckResult } from './drm-checker.js';
 export type { LiveDetectionResult } from './live-detector.js';
 export type { IframeCheckResult, IframeInfo, IframeIssue } from './iframe-checker.js';
 export type { BitrateCheckResult } from './bitrate-checker.js';
+export type { SDKKnownIssuesResult, KnownIssue } from './sdk-known-issues.js';
+export type { SignLanguageResult, SignLanguageIndicator } from './sign-language-checker.js';
 
 // --- Player Detection ---
 
@@ -191,6 +193,8 @@ import type { DrmCheckResult } from './drm-checker.js';
 import type { LiveDetectionResult } from './live-detector.js';
 import type { IframeCheckResult } from './iframe-checker.js';
 import type { BitrateCheckResult } from './bitrate-checker.js';
+import type { SDKKnownIssuesResult } from './sdk-known-issues.js';
+import type { SignLanguageResult } from './sign-language-checker.js';
 
 export interface StreamingAnalysisResult {
   playerDetected: boolean;
@@ -206,6 +210,8 @@ export interface StreamingAnalysisResult {
   liveDetection?: LiveDetectionResult;
   iframeAccessibility?: IframeCheckResult;
   bitrateCheck?: BitrateCheckResult;
+  sdkKnownIssues?: SDKKnownIssuesResult[];
+  signLanguage?: SignLanguageResult;
 }
 
 // --- Module function signatures ---

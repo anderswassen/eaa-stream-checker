@@ -12,6 +12,8 @@ import type { DrmCheckResult } from '../../src/services/streaming/drm-checker.js
 import type { LiveDetectionResult } from '../../src/services/streaming/live-detector.js';
 import type { IframeCheckResult } from '../../src/services/streaming/iframe-checker.js';
 import type { BitrateCheckResult } from '../../src/services/streaming/bitrate-checker.js';
+import type { SignLanguageResult } from '../../src/services/streaming/sign-language-checker.js';
+import type { SDKKnownIssuesResult } from '../../src/services/streaming/sdk-known-issues.js';
 
 function makeCaptions(overrides: Partial<CaptionCheckResult> = {}): CaptionCheckResult {
   return {
@@ -68,11 +70,12 @@ function makeAccessibility(overrides: Partial<PlayerAccessibilityResult> = {}): 
 }
 
 const ALL_CLAUSE_IDS = [
-  '7.1.1', '7.1.2', '7.1.3', '7.1.4', '7.1.5',
+  '7.1.1', '7.1.2', '7.1.3', '7.1.4', '7.1.5', '7.1.6',
   '7.2.1', '7.2.2', '7.2.3',
   '7.3',
   '7.4.1', '7.4.2', '7.4.3', '7.4.4',
   '7.5.1', '7.5.2', '7.5.3',
+  '7.6.1',
 ];
 
 // ---- Clause 7.1.x: Captions ----
@@ -888,6 +891,193 @@ describe('Clause 7.5.3 — Adaptive bitrate', () => {
     const f753 = findings.find((f) => f.clauseId === '7.5.3');
     assert.ok(f753);
     assert.equal(f753.status, 'fail');
+  });
+});
+
+// ---- Clause 7.1.6: Sign language ----
+
+describe('Clause 7.1.6 — Sign language', () => {
+  it('reports not_applicable when no player detected', () => {
+    const findings = mapToClause7(
+      makeCaptions(),
+      makeAD(),
+      null,
+      [],
+      false
+    );
+
+    const f716 = findings.find((f) => f.clauseId === '7.1.6');
+    assert.ok(f716);
+    assert.equal(f716.status, 'not_applicable');
+  });
+
+  it('reports pass when sign language detected with high confidence', () => {
+    const signLanguage: SignLanguageResult = {
+      hasSignLanguage: true,
+      confidence: 'high',
+      indicators: [
+        { type: 'manifest_track', description: 'DASH manifest contains Role value="sign"' },
+        { type: 'page_element', description: 'Found element matching "[class*=sign-language]"' },
+      ],
+      recommendations: [],
+    };
+
+    const findings = mapToClause7(
+      makeCaptions(),
+      makeAD(),
+      makeAccessibility(),
+      [],
+      true,
+      undefined, undefined, undefined, undefined, undefined,
+      signLanguage
+    );
+
+    const f716 = findings.find((f) => f.clauseId === '7.1.6');
+    assert.ok(f716);
+    assert.equal(f716.status, 'pass');
+  });
+
+  it('reports needs_review when sign language detected with medium confidence', () => {
+    const signLanguage: SignLanguageResult = {
+      hasSignLanguage: true,
+      confidence: 'medium',
+      indicators: [
+        { type: 'page_element', description: 'Found element matching "[aria-label*=sign language]"' },
+      ],
+      recommendations: [],
+    };
+
+    const findings = mapToClause7(
+      makeCaptions(),
+      makeAD(),
+      makeAccessibility(),
+      [],
+      true,
+      undefined, undefined, undefined, undefined, undefined,
+      signLanguage
+    );
+
+    const f716 = findings.find((f) => f.clauseId === '7.1.6');
+    assert.ok(f716);
+    assert.equal(f716.status, 'needs_review');
+  });
+
+  it('reports needs_review when no sign language detected', () => {
+    const signLanguage: SignLanguageResult = {
+      hasSignLanguage: false,
+      confidence: 'low',
+      indicators: [],
+      recommendations: ['No sign language provisions detected.'],
+    };
+
+    const findings = mapToClause7(
+      makeCaptions(),
+      makeAD(),
+      makeAccessibility(),
+      [],
+      true,
+      undefined, undefined, undefined, undefined, undefined,
+      signLanguage
+    );
+
+    const f716 = findings.find((f) => f.clauseId === '7.1.6');
+    assert.ok(f716);
+    assert.equal(f716.status, 'needs_review');
+  });
+});
+
+// ---- Clause 7.6.1: SDK known issues ----
+
+describe('Clause 7.6.1 — SDK known issues', () => {
+  it('reports pass when no known issues for SDK', () => {
+    const sdkKnownIssues: SDKKnownIssuesResult[] = [{
+      sdk: 'plyr',
+      sdkDisplayName: 'Plyr',
+      version: '3.7.8',
+      knownIssues: [],
+      recommendations: [],
+    }];
+
+    const findings = mapToClause7(
+      makeCaptions(),
+      makeAD(),
+      makeAccessibility(),
+      [],
+      true,
+      undefined, undefined, undefined, undefined, undefined, undefined,
+      sdkKnownIssues
+    );
+
+    const f761 = findings.find((f) => f.clauseId === '7.6.1');
+    assert.ok(f761);
+    assert.equal(f761.status, 'pass');
+  });
+
+  it('reports fail when critical SDK issues exist', () => {
+    const sdkKnownIssues: SDKKnownIssuesResult[] = [{
+      sdk: 'videojs',
+      sdkDisplayName: 'Video.js',
+      version: '7.10.0',
+      knownIssues: [
+        {
+          id: 'videojs-settings-keyboard-trap',
+          severity: 'critical',
+          title: 'Settings menu keyboard trap',
+          description: 'Keyboard trap in settings menu.',
+          affectedVersions: '< 7.21',
+          fixedIn: '7.21.0',
+        },
+      ],
+      recommendations: ['Upgrade Video.js to 7.21.0 or later.'],
+    }];
+
+    const findings = mapToClause7(
+      makeCaptions(),
+      makeAD(),
+      makeAccessibility(),
+      [],
+      true,
+      undefined, undefined, undefined, undefined, undefined, undefined,
+      sdkKnownIssues
+    );
+
+    const f761 = findings.find((f) => f.clauseId === '7.6.1');
+    assert.ok(f761);
+    assert.equal(f761.status, 'fail');
+    assert.ok(f761.evidence.includes('Video.js'));
+    assert.ok(f761.evidence.includes('7.21.0'));
+  });
+
+  it('reports needs_review when only major SDK issues exist', () => {
+    const sdkKnownIssues: SDKKnownIssuesResult[] = [{
+      sdk: 'hls.js',
+      sdkDisplayName: 'hls.js',
+      version: '1.4.0',
+      knownIssues: [
+        {
+          id: 'hlsjs-subtitle-default',
+          severity: 'major',
+          title: 'DEFAULT subtitle tracks may not auto-enable',
+          description: 'Subtitles may need manual enabling.',
+          affectedVersions: 'all',
+        },
+      ],
+      recommendations: [],
+    }];
+
+    const findings = mapToClause7(
+      makeCaptions(),
+      makeAD(),
+      makeAccessibility(),
+      [],
+      true,
+      undefined, undefined, undefined, undefined, undefined, undefined,
+      sdkKnownIssues
+    );
+
+    const f761 = findings.find((f) => f.clauseId === '7.6.1');
+    assert.ok(f761);
+    assert.equal(f761.status, 'needs_review');
   });
 });
 

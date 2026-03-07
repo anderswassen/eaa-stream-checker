@@ -10,6 +10,8 @@ import { checkDRM } from './drm-checker.js';
 import { detectLiveOrVOD } from './live-detector.js';
 import { checkIframes } from './iframe-checker.js';
 import { checkBitrate } from './bitrate-checker.js';
+import { lookupKnownIssues } from './sdk-known-issues.js';
+import { checkSignLanguage } from './sign-language-checker.js';
 
 export type { StreamingAnalysisResult, StreamingFinding } from './types.js';
 
@@ -90,16 +92,19 @@ async function runAnalysis(
   let liveDetection;
   let iframeAccessibility;
   let bitrateCheck;
+  let signLanguage;
 
   try {
-    const [drmResult, liveResult, iframeResult] = await Promise.all([
+    const [drmResult, liveResult, iframeResult, signLangResult] = await Promise.all([
       checkDRM(page, manifests, captions).catch(() => undefined),
       detectLiveOrVOD(page, manifests).catch(() => undefined),
       checkIframes(page).catch(() => undefined),
+      checkSignLanguage(page, manifests).catch(() => undefined),
     ]);
     drm = drmResult;
     liveDetection = liveResult;
     iframeAccessibility = iframeResult;
+    signLanguage = signLangResult;
   } catch {
     // Silently continue if any check fails
   }
@@ -109,6 +114,9 @@ async function runAnalysis(
   } catch {
     // Silently continue if bitrate check fails
   }
+
+  // Step 3.7: Look up known SDK issues (pure function, no page access needed)
+  const sdkKnownIssues = lookupKnownIssues(players);
 
   // Step 4: Map findings to EN 301 549 Clause 7
   const findings = mapToClause7(
@@ -121,7 +129,9 @@ async function runAnalysis(
     drm,
     liveDetection,
     iframeAccessibility,
-    bitrateCheck
+    bitrateCheck,
+    signLanguage,
+    sdkKnownIssues
   );
 
   return {
@@ -138,5 +148,7 @@ async function runAnalysis(
     liveDetection,
     iframeAccessibility,
     bitrateCheck,
+    sdkKnownIssues,
+    signLanguage,
   };
 }

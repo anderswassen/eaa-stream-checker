@@ -12,6 +12,8 @@ import type { DrmCheckResult } from './drm-checker.js';
 import type { LiveDetectionResult } from './live-detector.js';
 import type { IframeCheckResult } from './iframe-checker.js';
 import type { BitrateCheckResult } from './bitrate-checker.js';
+import type { SignLanguageResult } from './sign-language-checker.js';
+import type { SDKKnownIssuesResult } from './sdk-known-issues.js';
 
 interface Clause7Check {
   clauseId: string;
@@ -32,6 +34,8 @@ interface MappingContext {
   liveDetection?: LiveDetectionResult;
   iframeAccessibility?: IframeCheckResult;
   bitrateCheck?: BitrateCheckResult;
+  signLanguage?: SignLanguageResult;
+  sdkKnownIssues?: SDKKnownIssuesResult[];
 }
 
 const CLAUSE_7_CHECKS: Clause7Check[] = [
@@ -891,6 +895,119 @@ const CLAUSE_7_CHECKS: Clause7Check[] = [
       };
     },
   },
+  {
+    clauseId: '7.1.6',
+    clauseTitle: 'Sign language interpretation',
+    helpText: 'Sign language interpretation should be provided for pre-recorded and live video content to support deaf users who rely on sign language as their primary communication method.',
+    severity: 'major',
+    evaluate: (ctx) => {
+      if (!ctx.playerDetected) {
+        return {
+          status: 'not_applicable',
+          description: 'No video player detected.',
+          evidence: 'No player found.',
+        };
+      }
+      if (!ctx.signLanguage) {
+        return {
+          status: 'needs_review',
+          description: 'Sign language check was not performed.',
+          evidence: 'Sign language analysis was not run.',
+        };
+      }
+
+      const { hasSignLanguage, confidence, indicators, recommendations } = ctx.signLanguage;
+      const indicatorSummary = indicators.map((i) => i.description).join('; ');
+
+      if (hasSignLanguage && confidence === 'high') {
+        return {
+          status: 'pass',
+          description: 'Sign language provisions detected with high confidence.',
+          evidence: `${indicators.length} indicator(s) found: ${indicatorSummary}`,
+        };
+      }
+
+      if (hasSignLanguage && confidence === 'medium') {
+        return {
+          status: 'needs_review',
+          description: 'Possible sign language provisions detected. Manual verification recommended to confirm sign language content is fully accessible.',
+          evidence: `${indicators.length} indicator(s) found (medium confidence): ${indicatorSummary}`,
+        };
+      }
+
+      if (hasSignLanguage && confidence === 'low') {
+        return {
+          status: 'needs_review',
+          description: 'Text references to sign language found, but no active sign language video or controls detected. Verify that sign language content is available.',
+          evidence: `${indicators.length} indicator(s) found (low confidence): ${indicatorSummary}`,
+        };
+      }
+
+      return {
+        status: 'needs_review',
+        description: `No sign language provisions detected. ${recommendations[0] || 'Consider providing sign language interpretation for key content.'}`,
+        evidence: 'No sign language tracks, overlays, or references found in page content or streaming manifests.',
+      };
+    },
+  },
+  {
+    clauseId: '7.6.1',
+    clauseTitle: 'Player SDK known accessibility issues',
+    helpText: 'Known accessibility issues for the detected video player SDK are flagged based on the player type and version. Addressing these issues proactively avoids common compliance gaps.',
+    severity: 'major',
+    evaluate: (ctx) => {
+      if (!ctx.playerDetected) {
+        return {
+          status: 'not_applicable',
+          description: 'No video player detected.',
+          evidence: 'No player found.',
+        };
+      }
+      if (!ctx.sdkKnownIssues || ctx.sdkKnownIssues.length === 0) {
+        return {
+          status: 'needs_review',
+          description: 'Player SDK known issue check was not performed.',
+          evidence: 'SDK known issues analysis was not run.',
+        };
+      }
+
+      const allIssues = ctx.sdkKnownIssues.flatMap((r) => r.knownIssues);
+      const allRecommendations = ctx.sdkKnownIssues.flatMap((r) => r.recommendations);
+      const sdkInfo = ctx.sdkKnownIssues
+        .map((r) => `${r.sdkDisplayName}${r.version ? ` v${r.version}` : ''}`)
+        .join(', ');
+
+      if (allIssues.length === 0) {
+        return {
+          status: 'pass',
+          description: `No known accessibility issues for ${sdkInfo}.`,
+          evidence: `Player: ${sdkInfo}. No applicable known issues in the database.`,
+        };
+      }
+
+      const criticalCount = allIssues.filter((i) => i.severity === 'critical').length;
+      const majorCount = allIssues.filter((i) => i.severity === 'major').length;
+      const minorCount = allIssues.filter((i) => i.severity === 'minor').length;
+
+      const issueBreakdown = [
+        criticalCount > 0 ? `${criticalCount} critical` : '',
+        majorCount > 0 ? `${majorCount} major` : '',
+        minorCount > 0 ? `${minorCount} minor` : '',
+      ].filter(Boolean).join(', ');
+
+      const issueSummary = allIssues
+        .map((i) => `[${i.severity}] ${i.title}${i.fixedIn ? ` (fixed in ${i.fixedIn})` : ''}`)
+        .join('; ');
+
+      const status: ComplianceStatus = criticalCount > 0 ? 'fail' : majorCount > 0 ? 'needs_review' : 'pass';
+
+      return {
+        status,
+        description: `${allIssues.length} known accessibility issue(s) for ${sdkInfo}: ${issueBreakdown}.${allRecommendations.length > 0 ? ' ' + allRecommendations[0] : ''}`,
+        evidence: `Player: ${sdkInfo}. Known issues: ${issueSummary}.`,
+      };
+    },
+  },
 ];
 
 export function mapToClause7(
@@ -903,7 +1020,9 @@ export function mapToClause7(
   drm?: DrmCheckResult,
   liveDetection?: LiveDetectionResult,
   iframeAccessibility?: IframeCheckResult,
-  bitrateCheck?: BitrateCheckResult
+  bitrateCheck?: BitrateCheckResult,
+  signLanguage?: SignLanguageResult,
+  sdkKnownIssues?: SDKKnownIssuesResult[]
 ): StreamingFinding[] {
   const ctx: MappingContext = {
     captions,
@@ -916,6 +1035,8 @@ export function mapToClause7(
     liveDetection,
     iframeAccessibility,
     bitrateCheck,
+    signLanguage,
+    sdkKnownIssues,
   };
 
   return CLAUSE_7_CHECKS.map((check) => {
