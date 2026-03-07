@@ -21,6 +21,11 @@ export class PgStore {
     await runMigrations(this.pool);
   }
 
+  /** Run a raw query (used by diagnostics). */
+  async query(text: string, params?: unknown[]): Promise<pg.QueryResult> {
+    return this.pool.query(text, params);
+  }
+
   async close(): Promise<void> {
     await this.pool.end();
   }

@@ -11,6 +11,7 @@ import { reportRoutes } from "./routes/report.js";
 import { mappingRoutes } from "./routes/mappings.js";
 import { historyRoutes } from "./routes/history.js";
 import { scoreRoutes } from "./routes/score.js";
+import { dbStatusRoutes } from "./routes/db-status.js";
 import { closeBrowser } from "./services/crawler.js";
 
 const HOST = process.env.HOST ?? "0.0.0.0";
@@ -64,10 +65,11 @@ await app.register(
     await reportRoutes(instance, store);
     await instance.register(mappingRoutes);
 
-    // History & score routes only available with PostgreSQL
+    // History, score & diagnostics only available with PostgreSQL
     if (isPersistedStore(store)) {
       await historyRoutes(instance, store);
       await scoreRoutes(instance, store);
+      await dbStatusRoutes(instance, store);
     }
   },
   { prefix: "/api" }
