@@ -8,6 +8,10 @@ import type {
   ComplianceStatus,
   Severity,
 } from './types.js';
+import type { DrmCheckResult } from './drm-checker.js';
+import type { LiveDetectionResult } from './live-detector.js';
+import type { IframeCheckResult } from './iframe-checker.js';
+import type { BitrateCheckResult } from './bitrate-checker.js';
 
 interface Clause7Check {
   clauseId: string;
@@ -24,6 +28,10 @@ interface MappingContext {
   manifests: ManifestInfo[];
   playerDetected: boolean;
   audioTrackAnalysis?: AudioTrackAnalysis;
+  drm?: DrmCheckResult;
+  liveDetection?: LiveDetectionResult;
+  iframeAccessibility?: IframeCheckResult;
+  bitrateCheck?: BitrateCheckResult;
 }
 
 const CLAUSE_7_CHECKS: Clause7Check[] = [
@@ -117,6 +125,10 @@ const CLAUSE_7_CHECKS: Clause7Check[] = [
 
       const quality = ctx.captions.quality;
 
+      const liveNote = ctx.liveDetection?.isLive
+        ? ' Note: For live streams, a 3-5 second caption delay is generally considered acceptable.'
+        : '';
+
       // If quality analysis was performed, use its results
       if (quality?.analyzed) {
         const issuesSummary = quality.issues.length > 0
@@ -126,7 +138,7 @@ const CLAUSE_7_CHECKS: Clause7Check[] = [
         if (quality.syncScore === 'good') {
           return {
             status: 'pass',
-            description: `Caption file analyzed (${quality.format}, ${quality.cueCount} cues). Timestamps are sequential with no overlaps, gaps, or duration issues.`,
+            description: `Caption file analyzed (${quality.format}, ${quality.cueCount} cues). Timestamps are sequential with no overlaps, gaps, or duration issues.${liveNote}`,
             evidence: `Analyzed: ${quality.captionUrl}. ${quality.cueCount} cues validated with no synchronization issues.`,
           };
         }
@@ -134,7 +146,7 @@ const CLAUSE_7_CHECKS: Clause7Check[] = [
         if (quality.syncScore === 'acceptable') {
           return {
             status: 'needs_review',
-            description: `Caption file analyzed (${quality.format}, ${quality.cueCount} cues). Minor synchronization issues detected that may need manual review.${issuesSummary}`,
+            description: `Caption file analyzed (${quality.format}, ${quality.cueCount} cues). Minor synchronization issues detected that may need manual review.${issuesSummary}${liveNote}`,
             evidence: `Analyzed: ${quality.captionUrl}. ${quality.issues.length} issue(s) found.${issuesSummary}`,
           };
         }
@@ -142,7 +154,7 @@ const CLAUSE_7_CHECKS: Clause7Check[] = [
         if (quality.syncScore === 'poor') {
           return {
             status: 'fail',
-            description: `Caption file analyzed (${quality.format}, ${quality.cueCount} cues). Significant synchronization problems detected.${issuesSummary}`,
+            description: `Caption file analyzed (${quality.format}, ${quality.cueCount} cues). Significant synchronization problems detected.${issuesSummary}${liveNote}`,
             evidence: `Analyzed: ${quality.captionUrl}. ${quality.issues.length} issue(s) found.${issuesSummary}`,
           };
         }
@@ -153,7 +165,7 @@ const CLAUSE_7_CHECKS: Clause7Check[] = [
       return {
         status: 'needs_review',
         description:
-          'Caption tracks found but caption file could not be downloaded for automated synchronization analysis. Manual verification required.',
+          `Caption tracks found but caption file could not be downloaded for automated synchronization analysis. Manual verification required.${liveNote}`,
         evidence: `${trackCount} caption track(s) detected. Caption file download was not possible -- verify synchronization manually.`,
       };
     },
@@ -669,6 +681,216 @@ const CLAUSE_7_CHECKS: Clause7Check[] = [
       };
     },
   },
+  {
+    clauseId: '7.1.5',
+    clauseTitle: 'Live caption delivery',
+    helpText: 'Live streams must provide real-time captions so deaf or hard-of-hearing viewers can follow live content. A 3-5 second delay is acceptable for live captioning.',
+    severity: 'critical',
+    evaluate: (ctx) => {
+      if (!ctx.liveDetection || !ctx.liveDetection.isLive) {
+        return {
+          status: 'not_applicable',
+          description: 'Not a live stream, or live/VOD status could not be determined.',
+          evidence: ctx.liveDetection
+            ? `Detection result: isLive=${ctx.liveDetection.isLive}, confidence=${ctx.liveDetection.confidence}. Indicators: ${ctx.liveDetection.indicators.join('; ')}.`
+            : 'Live detection was not performed.',
+        };
+      }
+
+      if (ctx.captions.hasCaptions) {
+        const sources: string[] = [];
+        if (ctx.captions.domTracks.length > 0)
+          sources.push(`${ctx.captions.domTracks.length} DOM track(s)`);
+        if (ctx.captions.manifestTracks.length > 0)
+          sources.push(`${ctx.captions.manifestTracks.length} manifest subtitle track(s)`);
+        if (ctx.captions.playerApiTracks.length > 0)
+          sources.push(`${ctx.captions.playerApiTracks.length} player API text track(s)`);
+        return {
+          status: 'pass',
+          description: 'Live stream with captions detected. Live captioning appears to be provided.',
+          evidence: `Live stream (confidence: ${ctx.liveDetection.confidence}). Caption sources: ${sources.join(', ')}. Live indicators: ${ctx.liveDetection.indicators.join('; ')}.`,
+        };
+      }
+
+      return {
+        status: 'fail',
+        description: 'Live stream detected without captions. EN 301 549 requires real-time captioning for live content.',
+        evidence: `Live stream (confidence: ${ctx.liveDetection.confidence}). No caption tracks found. Live indicators: ${ctx.liveDetection.indicators.join('; ')}.`,
+      };
+    },
+  },
+  {
+    clauseId: '7.5.1',
+    clauseTitle: 'DRM accessibility',
+    helpText: 'When Digital Rights Management (DRM) is used, accessibility features like captions must remain accessible. Captions should be delivered outside the DRM envelope (e.g., as sidecar tracks) so they can be rendered and customized by the player.',
+    severity: 'major',
+    evaluate: (ctx) => {
+      if (!ctx.drm) {
+        return {
+          status: 'needs_review',
+          description: 'DRM check was not performed.',
+          evidence: 'DRM analysis was not run.',
+        };
+      }
+
+      if (!ctx.drm.usesEME) {
+        if (!ctx.playerDetected) {
+          return {
+            status: 'not_applicable',
+            description: 'No DRM detected and no video player found.',
+            evidence: 'No Encrypted Media Extensions (EME) usage or DRM systems detected. No video player on page.',
+          };
+        }
+        return {
+          status: 'pass',
+          description: 'No DRM detected. Content is delivered without encryption, so accessibility features are not restricted by DRM.',
+          evidence: 'No Encrypted Media Extensions (EME) usage or DRM systems detected.',
+        };
+      }
+
+      // DRM is used
+      const systemsList = ctx.drm.drmSystems.length > 0
+        ? ctx.drm.drmSystems.join(', ')
+        : 'unknown DRM system';
+
+      if (ctx.drm.captionsOutsideDRM === true) {
+        return {
+          status: 'pass',
+          description: `DRM detected (${systemsList}), but captions are delivered outside the DRM envelope via sidecar tracks. Accessibility features remain accessible.`,
+          evidence: `DRM systems: ${systemsList}. Captions found in DOM tracks, manifest subtitle tracks, or player API -- outside encrypted stream.`,
+        };
+      }
+
+      if (ctx.drm.captionsOutsideDRM === false) {
+        return {
+          status: 'fail',
+          description: `DRM detected (${systemsList}) and no sidecar caption tracks found. Captions may be locked inside the DRM envelope, preventing accessibility features.`,
+          evidence: `DRM systems: ${systemsList}. No DOM <track> elements, no manifest subtitle tracks, and no player API text tracks found.`,
+        };
+      }
+
+      return {
+        status: 'needs_review',
+        description: `DRM detected (${systemsList}) but caption delivery method could not be fully determined. Manual review needed to confirm captions are accessible.`,
+        evidence: `DRM systems: ${systemsList}. Caption tracks detected but delivery method (inside/outside DRM) is unclear.`,
+      };
+    },
+  },
+  {
+    clauseId: '7.5.2',
+    clauseTitle: 'Iframe player accessibility',
+    helpText: 'Embedded video players in iframes must have a title attribute describing their content so screen readers can identify them. Player iframes should also allow fullscreen viewing.',
+    severity: 'major',
+    evaluate: (ctx) => {
+      if (!ctx.iframeAccessibility) {
+        return {
+          status: 'needs_review',
+          description: 'Iframe accessibility check was not performed.',
+          evidence: 'Iframe analysis was not run.',
+        };
+      }
+
+      const { playerIframes, issues } = ctx.iframeAccessibility;
+      const playerOnlyIframes = playerIframes.filter((f) => f.isPlayerEmbed);
+
+      if (playerOnlyIframes.length === 0) {
+        return {
+          status: 'pass',
+          description: 'No embedded player iframes found on the page.',
+          evidence: `${ctx.iframeAccessibility.iframeCount} total iframe(s) found, none identified as known player embeds.`,
+        };
+      }
+
+      const missingTitleIssues = issues.filter((i) => i.type === 'missing_title');
+      const otherIssues = issues.filter((i) => i.type !== 'missing_title');
+
+      const evidenceParts: string[] = [
+        `${playerOnlyIframes.length} player iframe(s) found`,
+      ];
+
+      if (missingTitleIssues.length > 0) {
+        evidenceParts.push(
+          `Missing title: ${missingTitleIssues.map((i) => i.iframe).join(', ')}`
+        );
+      }
+      if (otherIssues.length > 0) {
+        evidenceParts.push(
+          `Other issues: ${otherIssues.map((i) => i.description).join('; ')}`
+        );
+      }
+
+      if (missingTitleIssues.length > 0) {
+        return {
+          status: 'fail',
+          description: `${missingTitleIssues.length} player iframe(s) missing title attribute. Screen readers cannot describe the purpose of these embedded players.`,
+          evidence: evidenceParts.join('. ') + '.',
+        };
+      }
+
+      if (otherIssues.length > 0) {
+        return {
+          status: 'needs_review',
+          description: `Player iframes have titles, but other accessibility issues were detected: ${otherIssues.map((i) => i.description).join('; ')}.`,
+          evidence: evidenceParts.join('. ') + '.',
+        };
+      }
+
+      return {
+        status: 'pass',
+        description: 'All player iframes have title attributes and no accessibility issues detected.',
+        evidence: evidenceParts.join('. ') + '.',
+      };
+    },
+  },
+  {
+    clauseId: '7.5.3',
+    clauseTitle: 'Adaptive bitrate accessibility',
+    helpText: 'When adaptive bitrate streaming is used, accessibility features (captions and audio descriptions) must be available at all quality levels, including the lowest bitrate, so users on slow connections still have access.',
+    severity: 'minor',
+    evaluate: (ctx) => {
+      if (!ctx.bitrateCheck) {
+        return {
+          status: 'needs_review',
+          description: 'Bitrate accessibility check was not performed.',
+          evidence: 'Bitrate analysis was not run.',
+        };
+      }
+
+      if (ctx.bitrateCheck.qualityLevels === 0) {
+        return {
+          status: 'not_applicable',
+          description: 'No adaptive streaming quality levels detected.',
+          evidence: 'No HLS STREAM-INF variants or DASH Representations found in manifests.',
+        };
+      }
+
+      const issues: string[] = [...ctx.bitrateCheck.issues];
+      const bitrateInfo = ctx.bitrateCheck.bitrateRange
+        ? ` Bitrate range: ${ctx.bitrateCheck.bitrateRange.min}-${ctx.bitrateCheck.bitrateRange.max} kbps.`
+        : '';
+
+      if (!ctx.bitrateCheck.captionsAvailableAtAllLevels) {
+        issues.push('Captions not available at all quality levels');
+      }
+      if (!ctx.bitrateCheck.adAvailableAtAllLevels) {
+        issues.push('Audio description not available at all quality levels');
+      }
+
+      if (issues.length === 0) {
+        return {
+          status: 'pass',
+          description: `Adaptive streaming with ${ctx.bitrateCheck.qualityLevels} quality level(s). Captions and audio description are available at all levels.`,
+          evidence: `${ctx.bitrateCheck.qualityLevels} quality level(s) detected.${bitrateInfo} Captions and AD referenced across all variants.`,
+        };
+      }
+
+      return {
+        status: 'fail',
+        description: `Adaptive streaming with ${ctx.bitrateCheck.qualityLevels} quality level(s), but accessibility features are not consistent across all levels: ${issues.join('; ')}.`,
+        evidence: `${ctx.bitrateCheck.qualityLevels} quality level(s) detected.${bitrateInfo} Issues: ${issues.join('; ')}.`,
+      };
+    },
+  },
 ];
 
 export function mapToClause7(
@@ -677,7 +899,11 @@ export function mapToClause7(
   accessibility: PlayerAccessibilityResult | null,
   manifests: ManifestInfo[],
   playerDetected: boolean,
-  audioTrackAnalysis?: AudioTrackAnalysis
+  audioTrackAnalysis?: AudioTrackAnalysis,
+  drm?: DrmCheckResult,
+  liveDetection?: LiveDetectionResult,
+  iframeAccessibility?: IframeCheckResult,
+  bitrateCheck?: BitrateCheckResult
 ): StreamingFinding[] {
   const ctx: MappingContext = {
     captions,
@@ -686,6 +912,10 @@ export function mapToClause7(
     manifests,
     playerDetected,
     audioTrackAnalysis,
+    drm,
+    liveDetection,
+    iframeAccessibility,
+    bitrateCheck,
   };
 
   return CLAUSE_7_CHECKS.map((check) => {

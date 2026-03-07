@@ -6,6 +6,10 @@ import { checkCaptions } from './caption-checker.js';
 import { checkAudioDescription, analyzeAudioTracks } from './audio-description-checker.js';
 import { checkPlayerAccessibility } from './player-accessibility.js';
 import { mapToClause7 } from './clause7-mapper.js';
+import { checkDRM } from './drm-checker.js';
+import { detectLiveOrVOD } from './live-detector.js';
+import { checkIframes } from './iframe-checker.js';
+import { checkBitrate } from './bitrate-checker.js';
 
 export type { StreamingAnalysisResult, StreamingFinding } from './types.js';
 
@@ -81,6 +85,31 @@ async function runAnalysis(
     audioDescription.domDescriptionTracks
   );
 
+  // Step 3.6: Run new streaming checks in parallel (wrapped in try/catch)
+  let drm;
+  let liveDetection;
+  let iframeAccessibility;
+  let bitrateCheck;
+
+  try {
+    const [drmResult, liveResult, iframeResult] = await Promise.all([
+      checkDRM(page, manifests, captions).catch(() => undefined),
+      detectLiveOrVOD(page, manifests).catch(() => undefined),
+      checkIframes(page).catch(() => undefined),
+    ]);
+    drm = drmResult;
+    liveDetection = liveResult;
+    iframeAccessibility = iframeResult;
+  } catch {
+    // Silently continue if any check fails
+  }
+
+  try {
+    bitrateCheck = checkBitrate(manifests);
+  } catch {
+    // Silently continue if bitrate check fails
+  }
+
   // Step 4: Map findings to EN 301 549 Clause 7
   const findings = mapToClause7(
     captions,
@@ -88,7 +117,11 @@ async function runAnalysis(
     playerAccessibility,
     manifests,
     playerDetected,
-    audioTrackAnalysis
+    audioTrackAnalysis,
+    drm,
+    liveDetection,
+    iframeAccessibility,
+    bitrateCheck
   );
 
   return {
@@ -101,5 +134,9 @@ async function runAnalysis(
     playerAccessibility,
     manifests,
     findings,
+    drm,
+    liveDetection,
+    iframeAccessibility,
+    bitrateCheck,
   };
 }

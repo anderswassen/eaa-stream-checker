@@ -67,6 +67,7 @@ export function parseHLSManifest(body: string, manifestUrl: string): ManifestInf
     type: 'hls',
     subtitleTracks,
     audioTracks,
+    rawContent: body,
   };
 }
 
@@ -157,6 +158,7 @@ export function parseDASHManifest(body: string, manifestUrl: string): ManifestIn
     type: 'dash',
     subtitleTracks,
     audioTracks,
+    rawContent: body,
   };
 }
 

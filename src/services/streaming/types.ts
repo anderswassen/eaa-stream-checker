@@ -1,6 +1,10 @@
 import type { Page } from 'playwright-core';
 import type { CaptionQualityResult } from './caption-quality.js';
 export type { CaptionQualityResult } from './caption-quality.js';
+export type { DrmCheckResult } from './drm-checker.js';
+export type { LiveDetectionResult } from './live-detector.js';
+export type { IframeCheckResult, IframeInfo, IframeIssue } from './iframe-checker.js';
+export type { BitrateCheckResult } from './bitrate-checker.js';
 
 // --- Player Detection ---
 
@@ -38,6 +42,7 @@ export interface ManifestInfo {
   type: 'hls' | 'dash';
   subtitleTracks: ManifestTrack[];
   audioTracks: ManifestAudioTrack[];
+  rawContent?: string;
 }
 
 export interface ManifestTrack {
@@ -182,6 +187,11 @@ export interface StreamingFinding {
 
 // --- Top-level Result ---
 
+import type { DrmCheckResult } from './drm-checker.js';
+import type { LiveDetectionResult } from './live-detector.js';
+import type { IframeCheckResult } from './iframe-checker.js';
+import type { BitrateCheckResult } from './bitrate-checker.js';
+
 export interface StreamingAnalysisResult {
   playerDetected: boolean;
   playerType: string | null;
@@ -192,6 +202,10 @@ export interface StreamingAnalysisResult {
   playerAccessibility: PlayerAccessibilityResult | null;
   manifests: ManifestInfo[];
   findings: StreamingFinding[];
+  drm?: DrmCheckResult;
+  liveDetection?: LiveDetectionResult;
+  iframeAccessibility?: IframeCheckResult;
+  bitrateCheck?: BitrateCheckResult;
 }
 
 // --- Module function signatures ---

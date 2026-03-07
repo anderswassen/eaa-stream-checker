@@ -1,19 +1,36 @@
 import { chromium, type Browser, type Page, type BrowserContext } from "playwright-core";
 import { existsSync } from "node:fs";
+import { execSync } from "node:child_process";
 
 let browser: Browser | null = null;
 
-// Find Chromium binary: system install (Alpine) or Playwright default
+// Find Chromium binary: system install (Alpine/Debian) or Playwright default
 function findChromium(): string | undefined {
   const candidates = [
     "/usr/bin/chromium-browser",
     "/usr/bin/chromium",
     "/usr/bin/google-chrome",
     "/usr/bin/google-chrome-stable",
+    "/usr/bin/google-chrome-unstable",
+    "/snap/bin/chromium",
   ];
   for (const path of candidates) {
-    if (existsSync(path)) return path;
+    if (existsSync(path)) {
+      console.log(`[crawler] Found Chromium at: ${path}`);
+      return path;
+    }
   }
+  // Try `which chromium` as last resort
+  try {
+    const result = execSync("which chromium 2>/dev/null || which chromium-browser 2>/dev/null", { encoding: "utf8" }).trim();
+    if (result && existsSync(result)) {
+      console.log(`[crawler] Found Chromium via which: ${result}`);
+      return result;
+    }
+  } catch {
+    // ignore
+  }
+  console.warn("[crawler] No system Chromium found, falling back to playwright-core default");
   return undefined;
 }
 
@@ -32,6 +49,7 @@ async function getBrowser(): Promise<Browser> {
         "--no-zygote",
       ],
     });
+    console.log(`[crawler] Browser launched successfully`);
   }
   return browser;
 }
