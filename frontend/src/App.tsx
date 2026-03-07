@@ -4,7 +4,7 @@ import { ReportPage } from './pages/ReportPage';
 import { HelpPage } from './pages/HelpPage';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 
-const APP_VERSION = '0.0.17';
+const APP_VERSION = '0.0.18';
 
 function ThemeToggle() {
   const { theme, toggleTheme } = useTheme();
