@@ -2,9 +2,10 @@ import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import { ScanPage } from './pages/ScanPage';
 import { ReportPage } from './pages/ReportPage';
 import { HelpPage } from './pages/HelpPage';
+import { HistoryPage } from './pages/HistoryPage';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 
-const APP_VERSION = '0.3.1';
+const APP_VERSION = '0.4.0';
 
 function ThemeToggle() {
   const { theme, toggleTheme } = useTheme();
@@ -59,6 +60,12 @@ function AppContent() {
             </Link>
             <div className="flex items-center gap-3">
               <Link
+                to="/history"
+                className="text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors focus:outline-2 focus:outline-offset-2 focus:outline-brand-400 rounded"
+              >
+                History
+              </Link>
+              <Link
                 to="/help"
                 className="text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors focus:outline-2 focus:outline-offset-2 focus:outline-brand-400 rounded"
               >
@@ -75,6 +82,7 @@ function AppContent() {
         <Routes>
           <Route path="/" element={<ScanPage />} />
           <Route path="/report/:id" element={<ReportPage />} />
+          <Route path="/history" element={<HistoryPage />} />
           <Route path="/help" element={<HelpPage />} />
         </Routes>
 

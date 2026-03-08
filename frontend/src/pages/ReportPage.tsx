@@ -2,7 +2,8 @@ import { useEffect, useState, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import type { ScanReport, Clause, Finding } from '../types/report';
-import { getReport } from '../api/client';
+import { getReport, getScore } from '../api/client';
+import type { ScoreResponse } from '../api/client';
 import { ClauseSection } from '../components/ClauseSection';
 import { ScoreGauge } from '../components/ScoreGauge';
 import { FilterBar } from '../components/FilterBar';
@@ -43,6 +44,7 @@ export function ReportPage() {
   const [exportingPdf, setExportingPdf] = useState(false);
   const [exportingVpat, setExportingVpat] = useState(false);
   const [revealed, setRevealed] = useState(false);
+  const [scoreData, setScoreData] = useState<ScoreResponse | null>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
 
   // Filter state
@@ -56,6 +58,12 @@ export function ReportPage() {
       .then(setReport)
       .catch(() => setError('Failed to load report.'));
   }, [id]);
+
+  // Fetch historical score data when report loads
+  useEffect(() => {
+    if (!report) return;
+    getScore(report.url).then(setScoreData).catch(() => {});
+  }, [report]);
 
   useEffect(() => {
     if (report) {
@@ -249,6 +257,50 @@ export function ReportPage() {
                       {report.summary.needsReview} Needs Review
                     </span>
                   </div>
+
+                  {/* Historical trend (only when DB is connected and has history) */}
+                  {scoreData && scoreData.scanCount > 1 && (
+                    <div className="flex flex-wrap items-center gap-4 rounded-lg border border-slate-200/50 dark:border-slate-700/50 bg-slate-50/50 dark:bg-slate-800/30 px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-slate-500 uppercase tracking-wide">Trend</span>
+                        {scoreData.trend === 'improving' && (
+                          <span className="inline-flex items-center gap-1 text-sm font-medium text-green-400">
+                            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 15l7-7 7 7" /></svg>
+                            Improving
+                          </span>
+                        )}
+                        {scoreData.trend === 'declining' && (
+                          <span className="inline-flex items-center gap-1 text-sm font-medium text-red-400">
+                            <svg className="h-4 w-4 rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 15l7-7 7 7" /></svg>
+                            Declining
+                          </span>
+                        )}
+                        {scoreData.trend === 'stable' && (
+                          <span className="inline-flex items-center gap-1 text-sm font-medium text-slate-400">
+                            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 12h14" /></svg>
+                            Stable
+                          </span>
+                        )}
+                      </div>
+                      {scoreData.previousScore !== null && (
+                        <span className="text-xs text-slate-500">
+                          Previous: <span className="font-medium text-slate-400">{scoreData.previousScore}%</span>
+                        </span>
+                      )}
+                      <span className="text-xs text-slate-500">
+                        Avg: <span className="font-medium text-slate-400">{scoreData.averageScore}%</span>
+                      </span>
+                      <span className="text-xs text-slate-500">
+                        Scans: <span className="font-medium text-slate-400">{scoreData.scanCount}</span>
+                      </span>
+                      <Link
+                        to="/history"
+                        className="text-xs text-brand-400 hover:text-brand-300 transition-colors ml-auto"
+                      >
+                        View history
+                      </Link>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
