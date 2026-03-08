@@ -230,7 +230,7 @@ export function ScanPage() {
                     id="url-input"
                     type="text"
                     inputMode="url"
-                    autoComplete="url"
+                    autoComplete="off"
                     autoCorrect="off"
                     autoCapitalize="off"
                     spellCheck={false}
