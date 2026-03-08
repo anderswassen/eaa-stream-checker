@@ -181,6 +181,14 @@ export function HelpPage() {
                 desc: 'When connected to PostgreSQL, every scan is persisted. The History page lets you search by domain or URL and view all past scans with score trends, pass/fail counts, and duration. Reports show improving/declining/stable trend indicators.',
               },
               {
+                title: 'Regression detection & change tracking',
+                desc: 'Each report automatically compares against the previous scan for the same URL. Clauses that regressed (were passing, now failing) get a red "Regression" badge. Fixed issues get a green "Fixed" badge. A "Changes Since Last Scan" summary highlights all regressions, fixes, and new issues at a glance.',
+              },
+              {
+                title: 'Domain monitoring dashboard',
+                desc: 'The home page shows all monitored domains with health-coded borders (green/yellow/red), score trends, and stale scan warnings. One-click re-scan lets you check a domain without retyping the URL. Sort by worst score to prioritize problems.',
+              },
+              {
                 title: 'Compliance score & executive summary',
                 desc: 'Each scan produces a 0-100 compliance score. Over time, track average, best, and worst scores per URL. The score API provides trend data for dashboards and reporting.',
               },
@@ -267,13 +275,15 @@ export function HelpPage() {
           </h2>
           <ol className="space-y-3 pt-1">
             {[
-              { step: '1', text: 'Enter the URL of your streaming service on the home page and press "Check Compliance".' },
+              { step: '1', text: 'Enter the URL of your streaming service on the home page and press "Check Compliance". Or, if you\'ve scanned before, use the one-click re-scan button on a domain card in the dashboard below.' },
               { step: '2', text: 'Optionally enable "Deep scan" to crawl internal pages for a broader assessment.' },
               { step: '3', text: 'The tool loads your site in a headless browser, runs WCAG 2.1 AA checks, analyses the video player, streaming manifests, captions, DRM, and embedded iframes.' },
-              { step: '4', text: 'Review the compliance report. Each finding is categorised by EN 301 549 clause, severity, and status (pass, fail, or needs review). Hover or expand clauses to see plain-language help text.' },
-              { step: '5', text: 'Export as PDF for documentation, JSON for internal systems, or VPAT 2.5 EU Edition for procurement and regulatory submissions.' },
-              { step: '6', text: 'Address the identified issues and re-scan to verify remediation. When connected to PostgreSQL, every scan is saved automatically.' },
-              { step: '7', text: 'Use the History page to track compliance over time. Search by domain or URL to see score trends, improvements, and regressions across all scans.' },
+              { step: '4', text: 'Review the compliance report. Each finding is categorised by EN 301 549 clause, severity, and status (pass, fail, or needs review). Look for Regression and Fixed badges that highlight what changed since the last scan.' },
+              { step: '5', text: 'Check the "Changes Since Last Scan" summary at the top of the report to quickly see regressions, fixes, and new issues compared to the previous scan.' },
+              { step: '6', text: 'Export as PDF for documentation, JSON for internal systems, or VPAT 2.5 EU Edition for procurement and regulatory submissions.' },
+              { step: '7', text: 'Address the identified issues and re-scan to verify remediation. When connected to PostgreSQL, every scan is saved automatically.' },
+              { step: '8', text: 'Monitor compliance from the home page dashboard. Domains are colour-coded by health (green/yellow/red), show trend arrows, and flag stale scans older than 7 days. Sort by worst score to prioritise.' },
+              { step: '9', text: 'Use the History page to track compliance over time. Search by domain or URL to see score trends, improvements, and regressions across all scans.' },
             ].map((item) => (
               <li key={item.step} className="flex gap-3">
                 <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-500/10 text-brand-400 text-xs font-bold font-mono">
