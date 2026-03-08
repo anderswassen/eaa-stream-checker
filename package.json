@@ -1,12 +1,12 @@
 {
   "name": "eaa-stream-checker",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "EAA Stream Checker — accessibility compliance tool for streaming services",
   "type": "module",
   "main": "dist/src/server.js",
   "scripts": {
     "postinstall": "if [ -f /etc/alpine-release ]; then ALPINE_VER=$(cat /etc/alpine-release | cut -d. -f1,2); echo \"[postinstall] Alpine ${ALPINE_VER}\"; apk add --no-cache --repository=https://dl-cdn.alpinelinux.org/alpine/v${ALPINE_VER}/community chromium nss freetype harfbuzz ca-certificates ttf-freefont 2>&1 || apk add --no-cache chromium nss freetype harfbuzz ca-certificates ttf-freefont 2>&1; if command -v chromium-browser >/dev/null 2>&1; then echo \"[postinstall] OK: $(chromium-browser --version 2>&1)\"; else echo \"[postinstall] WARNING: chromium-browser not found after install\"; fi; elif command -v apt-get >/dev/null 2>&1; then npx playwright-core install --with-deps chromium 2>&1; else npx playwright-core install chromium 2>&1; fi || true",
-    "build": "tsc",
+    "build": "if [ -f /etc/alpine-release ] && ! command -v chromium-browser >/dev/null 2>&1; then echo '[build] Installing Chromium (postinstall missed)...'; ALPINE_VER=$(cat /etc/alpine-release | cut -d. -f1,2); apk add --no-cache --repository=https://dl-cdn.alpinelinux.org/alpine/v${ALPINE_VER}/community chromium nss freetype harfbuzz ca-certificates ttf-freefont 2>&1 || apk add --no-cache chromium nss freetype harfbuzz ca-certificates ttf-freefont 2>&1 || true; fi; tsc",
     "dev": "tsx watch src/server.ts",
     "start": "node dist/src/server.js",
     "typecheck": "tsc --noEmit",
