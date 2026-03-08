@@ -179,4 +179,90 @@ export async function reportRoutes(app: FastifyInstance, store: AuditStore) {
 
     return report;
   });
+
+  // Comparison with previous scan
+  app.get<{ Params: { id: string } }>("/report/:id/comparison", async (request, reply) => {
+    if (!isPersistedStore(store)) {
+      return reply.status(404).send({ error: "Comparison requires database" });
+    }
+
+    // Get current scan's audit to find the URL
+    const audit = await store.getAsync(request.params.id);
+    if (!audit || audit.status !== "completed") {
+      return reply.status(404).send({ error: "Scan not found or not completed" });
+    }
+
+    // Find the previous completed scan for the same URL
+    const history = await store.pg.getHistory(audit.url, 2);
+    const previousScan = history.find((s) => s.id !== request.params.id);
+    if (!previousScan) {
+      return { hasPrevious: false, changes: [] };
+    }
+
+    // Get the previous scan's audit result and build its clauses
+    const prevAudit = await store.pg.get(previousScan.id);
+    if (!prevAudit || prevAudit.status !== "completed") {
+      return { hasPrevious: false, changes: [] };
+    }
+
+    // Build clause status maps for both scans
+    function buildClauseMap(a: typeof audit): Map<string, string> {
+      const map = new Map<string, string>();
+      const clause9Mappings = getAllClause9Mappings();
+
+      // Web clauses
+      const clauseViolations = new Map<string, boolean>();
+      for (const v of a!.violations) {
+        for (const cid of v.en301549Clauses) {
+          clauseViolations.set(cid, true);
+        }
+      }
+      for (const clause of Object.values(clause9Mappings)) {
+        map.set(clause.id, clauseViolations.has(clause.id) ? "fail" : "pass");
+      }
+
+      // Video clauses
+      if (a!.streaming) {
+        for (const f of a!.streaming.findings) {
+          map.set(f.clauseId, f.status);
+        }
+      }
+      return map;
+    }
+
+    const currentMap = buildClauseMap(audit);
+    const previousMap = buildClauseMap(prevAudit);
+
+    type ChangeType = "regression" | "fixed" | "new_issue" | "unchanged";
+    const changes: Array<{
+      clauseId: string;
+      previousStatus: string | null;
+      currentStatus: string;
+      change: ChangeType;
+    }> = [];
+
+    for (const [clauseId, currentStatus] of currentMap) {
+      const prevStatus = previousMap.get(clauseId) ?? null;
+      let change: ChangeType = "unchanged";
+
+      if (prevStatus === "pass" && (currentStatus === "fail" || currentStatus === "needs_review")) {
+        change = "regression";
+      } else if ((prevStatus === "fail" || prevStatus === "needs_review") && currentStatus === "pass") {
+        change = "fixed";
+      } else if (!prevStatus && currentStatus === "fail") {
+        change = "new_issue";
+      }
+
+      if (change !== "unchanged") {
+        changes.push({ clauseId, previousStatus: prevStatus, currentStatus, change });
+      }
+    }
+
+    return {
+      hasPrevious: true,
+      previousScanId: previousScan.id,
+      previousScanDate: previousScan.scannedAt,
+      changes,
+    };
+  });
 }

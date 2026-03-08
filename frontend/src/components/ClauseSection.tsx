@@ -5,7 +5,13 @@ import { StatusBadge } from './StatusBadge';
 import { SeverityBadge } from './SeverityBadge';
 import { FixSuggestion } from './FixSuggestion';
 
-export function ClauseSection({ clause }: { clause: Clause }) {
+const changeBadgeConfig = {
+  regression: { label: 'Regression', className: 'bg-red-500/15 text-red-300 ring-red-500/20' },
+  fixed: { label: 'Fixed', className: 'bg-green-500/15 text-green-300 ring-green-500/20' },
+  new_issue: { label: 'New', className: 'bg-orange-500/15 text-orange-300 ring-orange-500/20' },
+};
+
+export function ClauseSection({ clause, change }: { clause: Clause; change?: 'regression' | 'fixed' | 'new_issue' }) {
   const [expanded, setExpanded] = useState(clause.status === 'fail');
   const [expandedScreenshot, setExpandedScreenshot] = useState<string | null>(null);
   const headingId = `clause-${clause.clauseId}`;
@@ -23,6 +29,11 @@ export function ClauseSection({ clause }: { clause: Clause }) {
         >
           <span className="flex items-center gap-3 min-w-0">
             <StatusBadge status={clause.status} />
+            {change && (
+              <span className={`shrink-0 rounded-md ring-1 ring-inset px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${changeBadgeConfig[change].className}`}>
+                {changeBadgeConfig[change].label}
+              </span>
+            )}
             <span className="font-mono text-sm font-semibold text-brand-600 dark:text-brand-300 shrink-0">
               {clause.clauseId}
             </span>

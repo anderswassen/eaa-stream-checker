@@ -35,4 +35,11 @@ export async function historyRoutes(
       };
     }
   );
+
+  // Recently scanned domains dashboard
+  app.get("/domains", async (request, reply) => {
+    const limit = Math.min(Number((request.query as any).limit) || 20, 100);
+    const domains = await store.pg.getRecentDomains(limit);
+    return { domains };
+  });
 }

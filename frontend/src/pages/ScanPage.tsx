@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { startScan, getScanStatus } from '../api/client';
 import { ScanActivityLog } from '../components/ScanActivityLog';
+import { DomainDashboard } from '../components/DomainDashboard';
 
 function normalizeUrl(value: string): string {
   const trimmed = value.trim();
@@ -373,31 +374,34 @@ export function ScanPage() {
 
         {/* Feature highlights */}
         {!scanning && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4"
-          >
-            {[
-              { icon: '7', title: 'Clause 7', desc: 'Video & streaming player checks' },
-              { icon: '9', title: 'Clause 9', desc: 'WCAG 2.1 AA web content audit' },
-              { icon: 'EN', title: 'EN 301 549', desc: 'Full standard compliance mapping' },
-            ].map((feature) => (
-              <div
-                key={feature.title}
-                className="glass-light rounded-xl p-4 text-center"
-              >
-                <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-lg bg-brand-500/10 text-brand-400 font-bold font-mono text-sm">
-                  {feature.icon}
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+              className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4"
+            >
+              {[
+                { icon: '7', title: 'Clause 7', desc: 'Video & streaming player checks' },
+                { icon: '9', title: 'Clause 9', desc: 'WCAG 2.1 AA web content audit' },
+                { icon: 'EN', title: 'EN 301 549', desc: 'Full standard compliance mapping' },
+              ].map((feature) => (
+                <div
+                  key={feature.title}
+                  className="glass-light rounded-xl p-4 text-center"
+                >
+                  <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-lg bg-brand-500/10 text-brand-400 font-bold font-mono text-sm">
+                    {feature.icon}
+                  </div>
+                  <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                    {feature.title}
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-1">{feature.desc}</p>
                 </div>
-                <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200">
-                  {feature.title}
-                </h3>
-                <p className="text-xs text-slate-500 mt-1">{feature.desc}</p>
-              </div>
-            ))}
-          </motion.div>
+              ))}
+            </motion.div>
+            <DomainDashboard />
+          </>
         )}
       </div>
     </main>

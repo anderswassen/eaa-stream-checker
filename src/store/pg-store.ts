@@ -184,6 +184,44 @@ export class PgStore {
     }));
   }
 
+  /** Get recently scanned domains with their latest score and scan count. */
+  async getRecentDomains(limit = 10): Promise<
+    Array<{
+      domain: string;
+      latestUrl: string;
+      latestScore: number | null;
+      previousScore: number | null;
+      scanCount: number;
+      lastScanAt: string;
+    }>
+  > {
+    const { rows } = await this.pool.query(
+      `WITH ranked AS (
+         SELECT domain, url, score, scanned_at,
+                ROW_NUMBER() OVER (PARTITION BY domain ORDER BY scanned_at DESC) as rn,
+                COUNT(*) OVER (PARTITION BY domain) as scan_count,
+                LAG(score) OVER (PARTITION BY domain ORDER BY scanned_at) as prev_score
+         FROM scan_results
+         WHERE status = 'completed' AND score IS NOT NULL
+       )
+       SELECT domain, url as latest_url, score as latest_score, prev_score as previous_score,
+              scan_count, scanned_at as last_scan_at
+       FROM ranked
+       WHERE rn = 1
+       ORDER BY scanned_at DESC
+       LIMIT $1`,
+      [limit]
+    );
+    return rows.map((r) => ({
+      domain: r.domain,
+      latestUrl: r.latest_url,
+      latestScore: r.latest_score,
+      previousScore: r.previous_score,
+      scanCount: parseInt(r.scan_count, 10),
+      lastScanAt: r.last_scan_at,
+    }));
+  }
+
   /** Get compliance score summary for a URL (B2). */
   async getScoreSummary(url: string): Promise<{
     url: string;

@@ -2,8 +2,8 @@ import { useEffect, useState, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import type { ScanReport, Clause, Finding } from '../types/report';
-import { getReport, getScore } from '../api/client';
-import type { ScoreResponse } from '../api/client';
+import { getReport, getScore, getComparison } from '../api/client';
+import type { ScoreResponse, ComparisonResponse } from '../api/client';
 import { ClauseSection } from '../components/ClauseSection';
 import { ScoreGauge } from '../components/ScoreGauge';
 import { FilterBar } from '../components/FilterBar';
@@ -45,6 +45,7 @@ export function ReportPage() {
   const [exportingVpat, setExportingVpat] = useState(false);
   const [revealed, setRevealed] = useState(false);
   const [scoreData, setScoreData] = useState<ScoreResponse | null>(null);
+  const [comparison, setComparison] = useState<ComparisonResponse | null>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
 
   // Filter state
@@ -59,10 +60,11 @@ export function ReportPage() {
       .catch(() => setError('Failed to load report.'));
   }, [id]);
 
-  // Fetch historical score data when report loads
+  // Fetch historical score data and comparison when report loads
   useEffect(() => {
     if (!report) return;
     getScore(report.url).then(setScoreData).catch(() => {});
+    getComparison(report.id).then(setComparison).catch(() => {});
   }, [report]);
 
   useEffect(() => {
@@ -129,6 +131,14 @@ export function ReportPage() {
     }
     return true;
   });
+
+  // Build change map from comparison data
+  const changeMap = new Map<string, 'regression' | 'fixed' | 'new_issue'>();
+  if (comparison?.hasPrevious) {
+    for (const c of comparison.changes) {
+      changeMap.set(c.clauseId, c.change);
+    }
+  }
 
   const videoClauses = filteredClauses.filter((c) => c.category === 'video');
   const webClauses = filteredClauses.filter((c) => c.category === 'web_content');
@@ -377,6 +387,53 @@ export function ReportPage() {
             </motion.section>
           )}
 
+          {/* Comparison summary (regressions / fixes since last scan) */}
+          {comparison?.hasPrevious && comparison.changes.length > 0 && (
+            <motion.section variants={fadeUp} className="space-y-3">
+              <h2 className="text-lg font-bold text-slate-800 dark:text-slate-200">
+                Changes Since Last Scan
+              </h2>
+              <div className="glass-light rounded-xl p-4 space-y-2">
+                {comparison.changes.filter(c => c.change === 'regression').length > 0 && (
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex items-center gap-1.5 rounded-lg bg-red-500/10 px-3 py-1.5 text-xs font-semibold text-red-400">
+                      <svg className="h-3.5 w-3.5 rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 15l7-7 7 7" /></svg>
+                      {comparison.changes.filter(c => c.change === 'regression').length} Regression{comparison.changes.filter(c => c.change === 'regression').length !== 1 ? 's' : ''}
+                    </span>
+                    <span className="text-xs text-slate-500">
+                      {comparison.changes.filter(c => c.change === 'regression').map(c => c.clauseId).join(', ')}
+                    </span>
+                  </div>
+                )}
+                {comparison.changes.filter(c => c.change === 'fixed').length > 0 && (
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex items-center gap-1.5 rounded-lg bg-green-500/10 px-3 py-1.5 text-xs font-semibold text-green-400">
+                      <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" /></svg>
+                      {comparison.changes.filter(c => c.change === 'fixed').length} Fixed
+                    </span>
+                    <span className="text-xs text-slate-500">
+                      {comparison.changes.filter(c => c.change === 'fixed').map(c => c.clauseId).join(', ')}
+                    </span>
+                  </div>
+                )}
+                {comparison.changes.filter(c => c.change === 'new_issue').length > 0 && (
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex items-center gap-1.5 rounded-lg bg-orange-500/10 px-3 py-1.5 text-xs font-semibold text-orange-400">
+                      <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                      {comparison.changes.filter(c => c.change === 'new_issue').length} New Issue{comparison.changes.filter(c => c.change === 'new_issue').length !== 1 ? 's' : ''}
+                    </span>
+                    <span className="text-xs text-slate-500">
+                      {comparison.changes.filter(c => c.change === 'new_issue').map(c => c.clauseId).join(', ')}
+                    </span>
+                  </div>
+                )}
+                <p className="text-xs text-slate-500 pt-1">
+                  Compared with scan from {new Date(comparison.previousScanDate!).toLocaleDateString('en-GB', { year: 'numeric', month: 'short', day: 'numeric' })}
+                </p>
+              </div>
+            </motion.section>
+          )}
+
           {/* Filters + Content layout */}
           <motion.div variants={fadeUp}>
             <div className="no-print mb-6">
@@ -423,7 +480,7 @@ export function ReportPage() {
                           className={`scroll-mt-24 ${revealed ? 'clause-reveal' : 'opacity-0'}`}
                           style={revealed ? { animationDelay: `${i * 60}ms` } : undefined}
                         >
-                          <ClauseSection clause={clause} />
+                          <ClauseSection clause={clause} change={changeMap.get(clause.clauseId)} />
                         </div>
                       ))}
                     </div>
@@ -454,7 +511,7 @@ export function ReportPage() {
                           className={`scroll-mt-24 ${revealed ? 'clause-reveal' : 'opacity-0'}`}
                           style={revealed ? { animationDelay: `${(videoClauses.length + i) * 60}ms` } : undefined}
                         >
-                          <ClauseSection clause={clause} />
+                          <ClauseSection clause={clause} change={changeMap.get(clause.clauseId)} />
                         </div>
                       ))}
                     </div>

@@ -98,3 +98,42 @@ export async function getScore(url: string): Promise<ScoreResponse> {
   if (!res.ok) throw new Error('Score fetch failed');
   return res.json();
 }
+
+// --- Domain Dashboard API ---
+
+export interface DomainSummary {
+  domain: string;
+  latestUrl: string;
+  latestScore: number | null;
+  previousScore: number | null;
+  scanCount: number;
+  lastScanAt: string;
+}
+
+export async function getRecentDomains(limit = 20): Promise<{ domains: DomainSummary[] }> {
+  const res = await fetch(`${API_BASE}/api/domains?limit=${limit}`);
+  if (!res.ok) throw new Error('Failed to fetch domains');
+  return res.json();
+}
+
+// --- Comparison API ---
+
+export interface ClauseChange {
+  clauseId: string;
+  previousStatus: string | null;
+  currentStatus: string;
+  change: 'regression' | 'fixed' | 'new_issue';
+}
+
+export interface ComparisonResponse {
+  hasPrevious: boolean;
+  previousScanId?: string;
+  previousScanDate?: string;
+  changes: ClauseChange[];
+}
+
+export async function getComparison(id: string): Promise<ComparisonResponse> {
+  const res = await fetch(`${API_BASE}/api/report/${id}/comparison`);
+  if (!res.ok) throw new Error('Comparison fetch failed');
+  return res.json();
+}
