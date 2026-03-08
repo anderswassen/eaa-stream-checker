@@ -82,12 +82,14 @@ export function HelpPage() {
                 <li>Captions (subtitles) for pre-recorded and live content</li>
                 <li>Caption synchronization and quality analysis</li>
                 <li>Audio description for visual information</li>
+                <li>Sign language interpretation detection</li>
                 <li>Accessible video player controls (ARIA, focus, contrast, touch targets)</li>
                 <li>Keyboard operability of all player functions</li>
                 <li>User control over caption presentation</li>
                 <li>DRM that doesn't block accessibility features</li>
                 <li>Iframe player accessibility</li>
                 <li>Adaptive bitrate accessibility across quality levels</li>
+                <li>Player SDK known accessibility issues</li>
               </ul>
             </div>
             <div className="rounded-xl bg-slate-100/50 dark:bg-slate-800/50 border border-slate-200/50 dark:border-slate-700/50 p-4 space-y-2">
@@ -167,6 +169,22 @@ export function HelpPage() {
                 desc: 'Every finding is mapped to its corresponding EN 301 549 clause with plain-language explanations. Each clause includes help text explaining what it means and why it matters — the format auditors and legal teams expect.',
               },
               {
+                title: 'Sign language detection',
+                desc: 'Multi-signal detection of sign language interpretation via page elements, manifest tracks (HLS/DASH), PiP overlays, and text references in 8+ languages. Reports confidence level (high, medium, low) based on evidence strength.',
+              },
+              {
+                title: 'Player SDK known issue database',
+                desc: 'Static knowledge base of known accessibility issues for 9 major player SDKs (Video.js, JW Player, hls.js, dash.js, Shaka, Bitmovin, Plyr, Eyevinn, native HTML5). Version-aware filtering flags issues specific to your player version and recommends upgrades.',
+              },
+              {
+                title: 'Historical scan comparison & trend tracking',
+                desc: 'When connected to PostgreSQL, every scan is persisted. The History page lets you search by domain or URL and view all past scans with score trends, pass/fail counts, and duration. Reports show improving/declining/stable trend indicators.',
+              },
+              {
+                title: 'Compliance score & executive summary',
+                desc: 'Each scan produces a 0-100 compliance score. Over time, track average, best, and worst scores per URL. The score API provides trend data for dashboards and reporting.',
+              },
+              {
                 title: 'Exportable compliance reports (PDF, JSON, VPAT)',
                 desc: 'Reports can be exported as PDF for documentation, JSON for integration with internal systems, or as a VPAT 2.5 EU Edition — the industry-standard Accessibility Conformance Report format used for procurement and regulatory submissions.',
               },
@@ -188,7 +206,7 @@ export function HelpPage() {
             Clause 7 Checks Performed
           </h2>
           <p className="text-sm text-slate-400 leading-relaxed">
-            The tool evaluates 15 specific EN 301 549 Clause 7 requirements automatically:
+            The tool evaluates 18 specific EN 301 549 Clause 7 requirements automatically:
           </p>
           <div className="space-y-2 pt-2">
             {[
@@ -197,6 +215,7 @@ export function HelpPage() {
               { id: '7.1.3', title: 'Preservation of captioning', desc: 'Checks that captions are present in streaming manifests (not just sidecar).' },
               { id: '7.1.4', title: 'Captioning characteristics', desc: 'Looks for caption customization controls (font size, color, background, position).' },
               { id: '7.1.5', title: 'Live caption delivery', desc: 'For live streams, verifies real-time captions are provided.' },
+              { id: '7.1.6', title: 'Sign language interpretation', desc: 'Detects sign language via page elements, manifest tracks, PiP overlays, and text references.' },
               { id: '7.2.1', title: 'Audio description playback', desc: 'Detects AD tracks in DOM, manifests, and player UI selectors.' },
               { id: '7.2.2', title: 'Audio description synchronization', desc: 'Flags AD tracks for manual sync verification.' },
               { id: '7.2.3', title: 'Preservation of audio description', desc: 'Checks that AD tracks are in streaming manifests.' },
@@ -208,6 +227,7 @@ export function HelpPage() {
               { id: '7.5.1', title: 'DRM accessibility', desc: 'Verifies DRM does not prevent access to captions and accessibility features.' },
               { id: '7.5.2', title: 'Iframe player accessibility', desc: 'Checks embedded player iframes for title, fullscreen, and sandbox issues.' },
               { id: '7.5.3', title: 'Adaptive bitrate accessibility', desc: 'Verifies accessibility features at all streaming quality levels.' },
+              { id: '7.6.1', title: 'SDK known accessibility issues', desc: 'Flags known issues for detected player SDK and version, with upgrade recommendations.' },
             ].map((clause) => (
               <div key={clause.id} className="flex gap-3 items-start rounded-lg bg-slate-100/30 dark:bg-slate-800/30 px-3 py-2">
                 <span className="text-xs font-mono font-bold text-brand-400 shrink-0 w-10 pt-0.5">{clause.id}</span>
@@ -252,7 +272,8 @@ export function HelpPage() {
               { step: '3', text: 'The tool loads your site in a headless browser, runs WCAG 2.1 AA checks, analyses the video player, streaming manifests, captions, DRM, and embedded iframes.' },
               { step: '4', text: 'Review the compliance report. Each finding is categorised by EN 301 549 clause, severity, and status (pass, fail, or needs review). Hover or expand clauses to see plain-language help text.' },
               { step: '5', text: 'Export as PDF for documentation, JSON for internal systems, or VPAT 2.5 EU Edition for procurement and regulatory submissions.' },
-              { step: '6', text: 'Address the identified issues and re-scan to verify remediation.' },
+              { step: '6', text: 'Address the identified issues and re-scan to verify remediation. When connected to PostgreSQL, every scan is saved automatically.' },
+              { step: '7', text: 'Use the History page to track compliance over time. Search by domain or URL to see score trends, improvements, and regressions across all scans.' },
             ].map((item) => (
               <li key={item.step} className="flex gap-3">
                 <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-500/10 text-brand-400 text-xs font-bold font-mono">
