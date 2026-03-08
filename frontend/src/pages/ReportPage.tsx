@@ -294,7 +294,7 @@ export function ReportPage() {
                         Scans: <span className="font-medium text-slate-400">{scoreData.scanCount}</span>
                       </span>
                       <Link
-                        to="/history"
+                        to={`/history?domain=${encodeURIComponent(new URL(report.url).hostname)}`}
                         className="text-xs text-brand-400 hover:text-brand-300 transition-colors ml-auto"
                       >
                         View history

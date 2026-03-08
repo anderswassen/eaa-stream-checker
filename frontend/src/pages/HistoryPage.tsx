@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useEffect, useState, useCallback } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { getHistory, getVersion } from '../api/client';
 import type { DomainHistoryScan, HistoryResponse } from '../api/client';
@@ -55,34 +55,22 @@ function formatDuration(ms: number | null) {
 }
 
 export function HistoryPage() {
+  const [searchParams] = useSearchParams();
   const [history, setHistory] = useState<HistoryResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [dbAvailable, setDbAvailable] = useState<boolean | null>(null);
-  const [search, setSearch] = useState('');
-  const [searchType, setSearchType] = useState<'domain' | 'url'>('domain');
+  const [search, setSearch] = useState(searchParams.get('domain') ?? searchParams.get('url') ?? '');
+  const [searchType, setSearchType] = useState<'domain' | 'url'>(searchParams.has('url') ? 'url' : 'domain');
 
-  useEffect(() => {
-    getVersion()
-      .then((v) => {
-        setDbAvailable(v.persistence === 'postgresql');
-        setLoading(false);
-      })
-      .catch(() => {
-        setDbAvailable(false);
-        setLoading(false);
-      });
-  }, []);
-
-  async function handleSearch(e: React.FormEvent) {
-    e.preventDefault();
-    if (!search.trim()) return;
+  const doSearch = useCallback(async (type: 'domain' | 'url', query: string) => {
+    if (!query.trim()) return;
     setLoading(true);
     setError('');
     try {
-      const params = searchType === 'domain'
-        ? { domain: search.trim() }
-        : { url: search.trim().startsWith('http') ? search.trim() : `https://${search.trim()}` };
+      const params = type === 'domain'
+        ? { domain: query.trim() }
+        : { url: query.trim().startsWith('http') ? query.trim() : `https://${query.trim()}` };
       const result = await getHistory({ ...params, limit: 50 });
       setHistory(result);
     } catch {
@@ -90,6 +78,32 @@ export function HistoryPage() {
     } finally {
       setLoading(false);
     }
+  }, []);
+
+  useEffect(() => {
+    getVersion()
+      .then((v) => {
+        setDbAvailable(v.persistence === 'postgresql');
+        // Auto-search if query params provided
+        const domain = searchParams.get('domain');
+        const url = searchParams.get('url');
+        if (domain) {
+          doSearch('domain', domain);
+        } else if (url) {
+          doSearch('url', url);
+        } else {
+          setLoading(false);
+        }
+      })
+      .catch(() => {
+        setDbAvailable(false);
+        setLoading(false);
+      });
+  }, [searchParams, doSearch]);
+
+  async function handleSearch(e: React.FormEvent) {
+    e.preventDefault();
+    doSearch(searchType, search);
   }
 
   if (dbAvailable === false) {
