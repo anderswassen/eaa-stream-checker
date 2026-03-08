@@ -107,29 +107,13 @@ export function ScanPage() {
 
   const steps = deepScan ? scanSteps : scanStepsSingle;
 
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault();
-    setError('');
-
-    if (!url.trim()) {
-      setError('Please enter a URL.');
-      inputRef.current?.focus();
-      return;
-    }
-
-    const normalized = normalizeUrl(url);
-
-    if (!isValidUrl(normalized)) {
-      setError('Please enter a valid URL (e.g., svtplay.se).');
-      inputRef.current?.focus();
-      return;
-    }
-
+  async function runScan(targetUrl: string) {
     setScanning(true);
     setScanStep(0);
+    setError('');
 
     try {
-      const { id } = await startScan({ url: normalized, deepScan, maxPages: 5 });
+      const { id } = await startScan({ url: targetUrl, deepScan, maxPages: 5 });
       setScanStep(1);
 
       let status = 'in_progress';
@@ -155,14 +139,12 @@ export function ScanPage() {
         if (status === 'in_progress') {
           const last = steps.length - 1;
           if (deepScan) {
-            // Deep: Connecting→Analyzing(4s)→Streaming(12s)→Crawling(24s)→Mapping(40s)→Finalizing(50s+)
             if (pollCount >= 25) setScanStep(last);
             else if (pollCount >= 20) setScanStep(last - 1);
             else if (pollCount >= 12) setScanStep(3);
             else if (pollCount >= 6) setScanStep(2);
             else if (pollCount >= 2) setScanStep(1);
           } else {
-            // Single: Connecting→Analyzing(6s)→Streaming(16s)→Mapping(26s)→Finalizing(34s+)
             if (pollCount >= 17) setScanStep(last);
             else if (pollCount >= 13) setScanStep(last - 1);
             else if (pollCount >= 8) setScanStep(2);
@@ -180,6 +162,31 @@ export function ScanPage() {
       setScanStep(0);
       inputRef.current?.focus();
     }
+  }
+
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+
+    if (!url.trim()) {
+      setError('Please enter a URL.');
+      inputRef.current?.focus();
+      return;
+    }
+
+    const normalized = normalizeUrl(url);
+
+    if (!isValidUrl(normalized)) {
+      setError('Please enter a valid URL (e.g., svtplay.se).');
+      inputRef.current?.focus();
+      return;
+    }
+
+    runScan(normalized);
+  }
+
+  function handleRescan(rescanUrl: string) {
+    setUrl(rescanUrl);
+    runScan(rescanUrl);
   }
 
   return (
@@ -400,7 +407,7 @@ export function ScanPage() {
                 </div>
               ))}
             </motion.div>
-            <DomainDashboard />
+            <DomainDashboard onRescan={handleRescan} />
           </>
         )}
       </div>
