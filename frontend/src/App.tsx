@@ -6,7 +6,7 @@ import { HistoryPage } from './pages/HistoryPage';
 import { PrivacyPage } from './pages/PrivacyPage';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 
-const APP_VERSION = '0.5.1';
+const APP_VERSION = '0.5.2';
 
 function ThemeToggle() {
   const { theme, toggleTheme } = useTheme();

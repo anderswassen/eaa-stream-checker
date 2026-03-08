@@ -17,7 +17,7 @@ import { closeBrowser } from "./services/crawler.js";
 const HOST = process.env.HOST ?? "0.0.0.0";
 const PORT = parseInt(process.env.PORT ?? "8080", 10);
 const GIT_SHA = process.env.GIT_SHA ?? "dev";
-const APP_VERSION = "0.5.1";
+const APP_VERSION = "0.5.2";
 const DATABASE_URL = process.env.DATABASE_URL;
 
 const app = Fastify({

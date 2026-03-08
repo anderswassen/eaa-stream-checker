@@ -1,6 +1,6 @@
 {
   "name": "eaa-stream-checker",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "description": "EAA Stream Checker — accessibility compliance tool for streaming services",
   "type": "module",
   "main": "dist/src/server.js",
