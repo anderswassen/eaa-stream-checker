@@ -3,6 +3,7 @@ import { ScanPage } from './pages/ScanPage';
 import { ReportPage } from './pages/ReportPage';
 import { HelpPage } from './pages/HelpPage';
 import { HistoryPage } from './pages/HistoryPage';
+import { PrivacyPage } from './pages/PrivacyPage';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 
 const APP_VERSION = '0.4.0';
@@ -84,13 +85,22 @@ function AppContent() {
           <Route path="/report/:id" element={<ReportPage />} />
           <Route path="/history" element={<HistoryPage />} />
           <Route path="/help" element={<HelpPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
         </Routes>
 
         <footer className="border-t border-slate-200/50 dark:border-slate-800/50 py-6 text-center">
           <div className="mx-auto max-w-6xl px-6 flex flex-col sm:flex-row items-center justify-between gap-3">
-            <p className="text-sm text-slate-500">
-              European Accessibility Act compliance tool for streaming services
-            </p>
+            <div className="flex items-center gap-4">
+              <p className="text-sm text-slate-500">
+                European Accessibility Act compliance tool for streaming services
+              </p>
+              <Link
+                to="/privacy"
+                className="text-xs text-slate-500 hover:text-slate-300 transition-colors"
+              >
+                Privacy &amp; Data
+              </Link>
+            </div>
             <div className="flex items-center gap-3">
               <img
                 src="/staylive-logo.png"
