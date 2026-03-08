@@ -225,5 +225,7 @@ async function runScan(
     if (context) {
       await context.close();
     }
+    // Persist final state (completed/failed) to database
+    store.set(id, audit);
   }
 }
