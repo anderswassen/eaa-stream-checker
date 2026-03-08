@@ -61,16 +61,18 @@ export function HistoryPage() {
   const [error, setError] = useState('');
   const [dbAvailable, setDbAvailable] = useState<boolean | null>(null);
   const [search, setSearch] = useState(searchParams.get('domain') ?? searchParams.get('url') ?? '');
-  const [searchType, setSearchType] = useState<'domain' | 'url'>(searchParams.has('url') ? 'url' : 'domain');
 
-  const doSearch = useCallback(async (type: 'domain' | 'url', query: string) => {
+  const doSearch = useCallback(async (query: string) => {
     if (!query.trim()) return;
     setLoading(true);
     setError('');
     try {
-      const params = type === 'domain'
-        ? { domain: query.trim() }
-        : { url: query.trim().startsWith('http') ? query.trim() : `https://${query.trim()}` };
+      const q = query.trim();
+      // Auto-detect: if input contains :// or / it's a URL, otherwise a domain
+      const isUrl = q.includes('://') || q.includes('/');
+      const params = isUrl
+        ? { url: q.startsWith('http') ? q : `https://${q}` }
+        : { domain: q };
       const result = await getHistory({ ...params, limit: 50 });
       setHistory(result);
     } catch {
@@ -88,9 +90,9 @@ export function HistoryPage() {
         const domain = searchParams.get('domain');
         const url = searchParams.get('url');
         if (domain) {
-          doSearch('domain', domain);
+          doSearch(domain);
         } else if (url) {
-          doSearch('url', url);
+          doSearch(url);
         } else {
           setLoading(false);
         }
@@ -103,7 +105,7 @@ export function HistoryPage() {
 
   async function handleSearch(e: React.FormEvent) {
     e.preventDefault();
-    doSearch(searchType, search);
+    doSearch(search);
   }
 
   if (dbAvailable === false) {
@@ -146,35 +148,11 @@ export function HistoryPage() {
         <motion.div variants={fadeUp} initial="hidden" animate="show">
           <form onSubmit={handleSearch} className="glass rounded-2xl p-6">
             <div className="flex flex-col sm:flex-row gap-3">
-              <div className="flex rounded-xl border border-slate-300 dark:border-slate-700 overflow-hidden">
-                <button
-                  type="button"
-                  onClick={() => setSearchType('domain')}
-                  className={`px-3 py-2 text-sm font-medium transition-colors ${
-                    searchType === 'domain'
-                      ? 'bg-brand-500/20 text-brand-400'
-                      : 'text-slate-500 hover:text-slate-300'
-                  }`}
-                >
-                  Domain
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSearchType('url')}
-                  className={`px-3 py-2 text-sm font-medium transition-colors ${
-                    searchType === 'url'
-                      ? 'bg-brand-500/20 text-brand-400'
-                      : 'text-slate-500 hover:text-slate-300'
-                  }`}
-                >
-                  URL
-                </button>
-              </div>
               <input
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder={searchType === 'domain' ? 'expressen.se' : 'https://expressen.se'}
+                placeholder="expressen.se or https://expressen.se/tv/"
                 className="flex-1 rounded-xl border border-slate-300 dark:border-slate-700 bg-white/80 dark:bg-slate-800/80 px-4 py-2.5 text-sm text-slate-900 dark:text-white placeholder:text-slate-500 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 focus:outline-none"
               />
               <button

@@ -160,10 +160,11 @@ export class PgStore {
       failed: number;
       needsReview: number;
       totalChecks: number;
+      durationMs: number | null;
     }>
   > {
     const { rows } = await this.pool.query(
-      `SELECT id, url, scanned_at, score, passed, failed, needs_review, total_checks
+      `SELECT id, url, scanned_at, score, passed, failed, needs_review, total_checks, duration_ms
        FROM scan_results
        WHERE domain = $1 AND status = 'completed'
        ORDER BY scanned_at DESC
@@ -179,6 +180,7 @@ export class PgStore {
       failed: r.failed,
       needsReview: r.needs_review,
       totalChecks: r.total_checks,
+      durationMs: r.duration_ms,
     }));
   }
 

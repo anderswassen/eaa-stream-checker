@@ -17,7 +17,7 @@ import { closeBrowser } from "./services/crawler.js";
 const HOST = process.env.HOST ?? "0.0.0.0";
 const PORT = parseInt(process.env.PORT ?? "8080", 10);
 const GIT_SHA = process.env.GIT_SHA ?? "dev";
-const APP_VERSION = "0.4.0";
+const APP_VERSION = "0.4.1";
 const DATABASE_URL = process.env.DATABASE_URL;
 
 const app = Fastify({
@@ -107,6 +107,15 @@ const shutdown = async (signal: string) => {
 
 process.on("SIGINT", () => shutdown("SIGINT"));
 process.on("SIGTERM", () => shutdown("SIGTERM"));
+
+// Log Chromium availability at startup
+const chromiumCandidates = ["/usr/bin/chromium-browser", "/usr/bin/chromium"];
+const foundChromium = chromiumCandidates.find((p) => existsSync(p));
+if (foundChromium) {
+  app.log.info(`System Chromium found at ${foundChromium}`);
+} else {
+  app.log.warn("No system Chromium found — scans will fail unless CHROMIUM_PATH is set or Playwright has a bundled browser");
+}
 
 // Start
 try {

@@ -14,8 +14,17 @@ const LAUNCH_ARGS = [
   "--no-zygote",
 ];
 
-// Find Chromium binary: system install (Alpine/Debian) or Playwright default
+// Find Chromium binary: env var, system install (Alpine/Debian), or Playwright default
 function findChromium(): string | undefined {
+  // Check env var first (can be set via App Config Service)
+  const envPath = process.env.CHROMIUM_PATH;
+  if (envPath && existsSync(envPath)) {
+    console.log(`[crawler] Using CHROMIUM_PATH env: ${envPath}`);
+    return envPath;
+  } else if (envPath) {
+    console.warn(`[crawler] CHROMIUM_PATH set to "${envPath}" but file does not exist`);
+  }
+
   const candidates = [
     "/usr/bin/chromium-browser",
     "/usr/bin/chromium",
@@ -46,7 +55,7 @@ function findChromium(): string | undefined {
   } catch {
     // ignore
   }
-  console.warn("[crawler] No system Chromium found");
+  console.warn("[crawler] No system Chromium found — set CHROMIUM_PATH env var or install chromium via apk/apt");
   return undefined;
 }
 
