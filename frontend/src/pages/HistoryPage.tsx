@@ -66,9 +66,7 @@ export function HistoryPage() {
     getVersion()
       .then((v) => {
         setDbAvailable(v.persistence === 'postgresql');
-        if (v.persistence !== 'postgresql') {
-          setLoading(false);
-        }
+        setLoading(false);
       })
       .catch(() => {
         setDbAvailable(false);
