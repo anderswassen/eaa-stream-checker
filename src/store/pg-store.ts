@@ -1,6 +1,7 @@
 import pg from "pg";
 import type { AuditResult } from "../types/audit.js";
 import { runMigrations } from "./migrations.js";
+import { computeClauseScore, computeClauseCounts } from "../utils/score.js";
 
 const { Pool } = pg;
 
@@ -40,6 +41,7 @@ export class PgStore {
   async set(id: string, audit: AuditResult): Promise<void> {
     const domain = extractDomain(audit.url);
     const score = computeScore(audit);
+    const counts = computeClauseCounts(audit);
 
     await this.pool.query(
       `INSERT INTO scan_results
@@ -61,10 +63,10 @@ export class PgStore {
         audit.timestamp,
         audit.status,
         score,
-        audit.passes,
-        countFailed(audit),
-        audit.incomplete,
-        audit.passes + countFailed(audit) + audit.incomplete,
+        counts.passed,
+        counts.failed,
+        counts.needsReview,
+        counts.totalChecks,
         audit.duration ?? null,
         audit.deepScan ?? false,
         JSON.stringify(audit),
@@ -306,13 +308,6 @@ function extractDomain(url: string): string {
   }
 }
 
-function countFailed(audit: AuditResult): number {
-  return audit.violations.length;
-}
-
 function computeScore(audit: AuditResult): number | null {
-  if (audit.status !== "completed") return null;
-  const total = audit.passes + audit.violations.length + audit.incomplete;
-  if (total === 0) return null;
-  return Math.round((audit.passes / total) * 100);
+  return computeClauseScore(audit);
 }

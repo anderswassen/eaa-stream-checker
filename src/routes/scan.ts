@@ -5,6 +5,7 @@ import { crawlPage, extractInternalLinks } from "../services/crawler.js";
 import { analyzePage } from "../services/analyzer.js";
 import { prepareStreamingAnalysis } from "../services/streaming/index.js";
 import { createScanEmitter, getScanEmitter, emitScanProgress } from "../scan-events.js";
+import { computeClauseScore } from "../utils/score.js";
 
 export async function scanRoutes(app: FastifyInstance, store: AuditStore) {
   // POST /scan — start an async scan
@@ -315,9 +316,8 @@ async function runScan(
     audit.status = "completed";
     audit.duration = Date.now() - start;
 
-    // Compute score for SSE
-    const totalChecks = audit.violations.length + audit.passes + audit.incomplete + audit.inapplicable;
-    const scanScore = totalChecks > 0 ? Math.round(((totalChecks - audit.violations.length) / totalChecks) * 100) : 0;
+    // Compute score for SSE (clause-based, same as report page)
+    const scanScore = computeClauseScore(audit) ?? 0;
     emitScanProgress(id, { type: "complete", id, score: scanScore });
   } catch (err) {
     audit.status = "failed";
