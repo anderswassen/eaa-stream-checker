@@ -29,8 +29,6 @@ const KNOWN_PLAYER_DOMAINS = [
   'vimeo.com',
   'dailymotion.com',
   'twitch.tv',
-  'staylive.tv',
-  'staylive.io',
   'facebook.com/plugins/video',
   'player.vimeo.com',
   'players.brightcove.net',

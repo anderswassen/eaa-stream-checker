@@ -6,7 +6,7 @@ import { HistoryPage } from './pages/HistoryPage';
 import { PrivacyPage } from './pages/PrivacyPage';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 
-const APP_VERSION = '0.6.0';
+const APP_VERSION = '0.6.1';
 
 function ThemeToggle() {
   const { theme, toggleTheme } = useTheme();
@@ -49,12 +49,6 @@ function AppContent() {
               to="/"
               className="flex items-center gap-3 group focus:outline-2 focus:outline-offset-2 focus:outline-brand-400 rounded-lg"
             >
-              <img
-                src="/staylive-logo.png"
-                alt="Staylive"
-                className="h-12 w-auto brightness-0 dark:invert opacity-80 group-hover:opacity-100 transition-opacity"
-              />
-              <span className="text-slate-300 dark:text-slate-600 text-lg font-light select-none" aria-hidden="true">|</span>
               <span className="text-sm font-semibold text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">
                 EAA Stream Checker
               </span>
@@ -102,11 +96,6 @@ function AppContent() {
               </Link>
             </div>
             <div className="flex items-center gap-3">
-              <img
-                src="/staylive-logo.png"
-                alt="Staylive"
-                className="h-8 w-auto brightness-0 dark:invert opacity-50"
-              />
               <span className="text-sm text-slate-500 font-mono">v{APP_VERSION}</span>
             </div>
           </div>
