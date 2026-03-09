@@ -12,7 +12,7 @@ type ScanState = 'idle' | 'scanning' | 'passing' | 'failing';
 const ScanStateContext = createContext<{ state: ScanState; setState: (s: ScanState) => void }>({ state: 'idle', setState: () => {} });
 export function useScanState() { return useContext(ScanStateContext); }
 
-const APP_VERSION = '0.7.3';
+const APP_VERSION = '0.7.4';
 
 function ThemeToggle() {
   const { theme, toggleTheme } = useTheme();
@@ -105,18 +105,18 @@ function AppContent() {
         <footer className="border-t border-slate-200/50 dark:border-slate-800/50 py-6 text-center">
           <div className="mx-auto max-w-6xl px-6 flex flex-col sm:flex-row items-center justify-between gap-3">
             <div className="flex items-center gap-4">
-              <p className="text-sm text-slate-500">
+              <p className="text-sm text-slate-400">
                 European Accessibility Act compliance tool for streaming services
               </p>
               <Link
                 to="/privacy"
-                className="text-xs text-slate-500 hover:text-slate-300 transition-colors"
+                className="text-xs text-slate-400 hover:text-slate-200 transition-colors"
               >
                 Privacy &amp; Data
               </Link>
             </div>
             <div className="flex items-center gap-3">
-              <span className="text-sm text-slate-500 font-mono">v{APP_VERSION}</span>
+              <span className="text-sm text-slate-400 font-mono">v{APP_VERSION}</span>
             </div>
           </div>
         </footer>
