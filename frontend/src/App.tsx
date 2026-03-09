@@ -12,7 +12,7 @@ type ScanState = 'idle' | 'scanning' | 'passing' | 'failing';
 const ScanStateContext = createContext<{ state: ScanState; setState: (s: ScanState) => void }>({ state: 'idle', setState: () => {} });
 export function useScanState() { return useContext(ScanStateContext); }
 
-const APP_VERSION = '0.7.0';
+const APP_VERSION = '0.7.1';
 
 function ThemeToggle() {
   const { theme, toggleTheme } = useTheme();
