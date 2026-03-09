@@ -12,22 +12,103 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#0f172a" />
-    <meta name="description" content="Automated EN 301 549 compliance checker for streaming services. Check your site against the European Accessibility Act in seconds, not weeks." />
+
+    <title>EAA Compliance Checker — European Accessibility Act & EN 301 549 Scanner</title>
+    <meta name="description" content="Free EAA compliance checker for streaming services. Test your site against the European Accessibility Act (Directive 2019/882) and EN 301 549 in 30 seconds. Automated WCAG 2.1 AA audit, caption checks, audio description, player accessibility — full EAA compliance report with PDF and VPAT export." />
+    <meta name="keywords" content="EAA compliance, EAA compliance checker, European Accessibility Act, European Accessibility Act compliance, EN 301 549, EN 301 549 compliance, WCAG 2.1, WCAG compliance, accessibility compliance checker, streaming accessibility compliance, Directive 2019/882, EAA audit, accessibility audit tool, video accessibility, caption checker, audio description checker, player accessibility, web accessibility checker, EU accessibility compliance, accessibility testing, EAA compliance tool, EAA scanner" />
+    <link rel="canonical" href="https://www.eaachecker.net/" />
+    <meta name="robots" content="index, follow" />
+    <meta name="author" content="EAA Checker" />
 
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="EAA Checker" />
     <meta property="og:url" content="https://www.eaachecker.net/" />
-    <meta property="og:title" content="EAA Stream Checker — 30 seconds, not 30 days" />
-    <meta property="og:description" content="Automated EN 301 549 compliance checker for streaming services. Check your site against the European Accessibility Act in seconds, not weeks." />
+    <meta property="og:title" content="EAA Compliance Checker — European Accessibility Act & EN 301 549" />
+    <meta property="og:description" content="Free EAA compliance checker for streaming services. Audit EN 301 549, captions, audio description, player accessibility, and WCAG 2.1 AA — in 30 seconds, not 30 days." />
     <meta property="og:image" content="https://www.eaachecker.net/og-image.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="EAA Checker — European Accessibility Act compliance tool for streaming services" />
+    <meta property="og:locale" content="en_US" />
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="EAA Stream Checker — 30 seconds, not 30 days" />
-    <meta name="twitter:description" content="Automated EN 301 549 compliance checker for streaming services. Check your site against the European Accessibility Act in seconds, not weeks." />
+    <meta name="twitter:title" content="EAA Compliance Checker — European Accessibility Act & EN 301 549" />
+    <meta name="twitter:description" content="Free EAA compliance checker for streaming services. Audit EN 301 549, captions, audio description, player accessibility, and WCAG 2.1 AA — in 30 seconds." />
     <meta name="twitter:image" content="https://www.eaachecker.net/og-image.png" />
+    <meta name="twitter:image:alt" content="EAA Checker — European Accessibility Act compliance tool for streaming services" />
+
+    <!-- JSON-LD Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "EAA Checker",
+      "alternateName": ["EAA Stream Checker", "European Accessibility Act Checker", "EN 301 549 Checker"],
+      "url": "https://www.eaachecker.net",
+      "description": "Free automated compliance checker for the European Accessibility Act (EAA). Audit streaming services against EN 301 549, WCAG 2.1 AA, and EU Directive 2019/882. Checks captions, audio description, player accessibility, and web content accessibility.",
+      "applicationCategory": "Accessibility Tool",
+      "operatingSystem": "Web",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "EUR"
+      },
+      "featureList": [
+        "EN 301 549 Clause 7 video streaming compliance audit",
+        "EN 301 549 Clause 9 web content WCAG 2.1 AA audit",
+        "Caption and subtitle detection and quality analysis",
+        "Audio description track detection",
+        "Video player keyboard accessibility testing",
+        "HLS and DASH manifest analysis",
+        "Sign language track detection",
+        "DRM accessibility checks",
+        "PDF and VPAT compliance report export",
+        "Historical scan comparison and regression detection"
+      ]
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What is the European Accessibility Act (EAA)?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "The European Accessibility Act (EAA), EU Directive 2019/882, requires digital services including streaming platforms to meet accessibility standards by June 28, 2025. It mandates compliance with EN 301 549, which includes WCAG 2.1 AA for web content and Clause 7 requirements for video player accessibility, captions, and audio description."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What is EN 301 549?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "EN 301 549 is the European harmonised standard for ICT accessibility. It maps WCAG 2.1 AA success criteria to Clause 9 (web content) and adds Clause 7 requirements specific to video and streaming: caption playback, audio description, player keyboard navigation, and accessible controls."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How does EAA Checker test streaming services?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "EAA Checker launches a real browser, loads your streaming site, runs axe-core WCAG 2.1 AA analysis, detects video players (hls.js, dash.js, Shaka, Video.js, JW Player, etc.), intercepts HLS/DASH manifests, checks for captions, audio description, sign language tracks, tests player keyboard accessibility, and maps all findings to EN 301 549 clauses."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is EAA Checker free?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes, EAA Checker is completely free. You can scan any streaming service URL and receive a full EN 301 549 compliance report with exportable PDF and VPAT formats."
+          }
+        }
+      ]
+    }
+    </script>
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -35,9 +116,13 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
       rel="stylesheet"
     />
-    <title>EAA Stream Checker — EU Accessibility Compliance for Streaming</title>
   </head>
   <body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 antialiased">
+    <noscript>
+      <h1>EAA Compliance Checker — European Accessibility Act & EN 301 549</h1>
+      <p>Free EAA compliance checker for streaming services. Automated EN 301 549 compliance audit — captions, audio description, player accessibility, WCAG 2.1 AA web content. Full European Accessibility Act compliance report in 30 seconds.</p>
+      <p>This application requires JavaScript to run.</p>
+    </noscript>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
