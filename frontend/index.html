@@ -6,8 +6,7 @@
     <script>
       (function() {
         var s = localStorage.getItem('eaa-theme');
-        var d = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        if (s === 'light' || (!s && !d)) document.documentElement.classList.remove('dark');
+        if (s === 'light') document.documentElement.classList.remove('dark');
       })();
     </script>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
