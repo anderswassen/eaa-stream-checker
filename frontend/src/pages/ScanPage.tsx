@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, type FormEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { startScan, getScanStatus } from '../api/client';
 import { ScanActivityLog } from '../components/ScanActivityLog';
@@ -96,6 +96,7 @@ const scanStepsSingle = [
 ];
 
 export function ScanPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [url, setUrl] = useState('');
   const [error, setError] = useState('');
   const [scanning, setScanning] = useState(false);
@@ -104,8 +105,25 @@ export function ScanPage() {
   const inputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
   const typingPlaceholder = useTypingPlaceholder(exampleUrls);
+  const autoScanTriggered = useRef(false);
 
   const steps = deepScan ? scanSteps : scanStepsSingle;
+
+  // Auto-scan from ?scan=URL query param (used by History page re-scan)
+  useEffect(() => {
+    const scanUrl = searchParams.get('scan');
+    if (scanUrl && !autoScanTriggered.current && !scanning) {
+      autoScanTriggered.current = true;
+      const normalized = normalizeUrl(scanUrl);
+      if (isValidUrl(normalized)) {
+        setUrl(scanUrl);
+        setSearchParams({}, { replace: true });
+        // Small delay to let state settle before triggering scan
+        setTimeout(() => runScan(normalized), 100);
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   async function runScan(targetUrl: string) {
     setScanning(true);

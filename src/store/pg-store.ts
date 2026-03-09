@@ -184,7 +184,7 @@ export class PgStore {
     }));
   }
 
-  /** Get recently scanned domains with their latest score and scan count. */
+  /** Get recently scanned domains with their latest score, scan count, and sparkline data. */
   async getRecentDomains(limit = 10): Promise<
     Array<{
       domain: string;
@@ -193,6 +193,7 @@ export class PgStore {
       previousScore: number | null;
       scanCount: number;
       lastScanAt: string;
+      recentScores: number[];
     }>
   > {
     const { rows } = await this.pool.query(
@@ -204,11 +205,16 @@ export class PgStore {
          FROM scan_results
          WHERE status = 'completed' AND score IS NOT NULL
        )
-       SELECT domain, url as latest_url, score as latest_score, prev_score as previous_score,
-              scan_count, scanned_at as last_scan_at
-       FROM ranked
-       WHERE rn = 1
-       ORDER BY scanned_at DESC
+       SELECT r.domain, r.url as latest_url, r.score as latest_score, r.prev_score as previous_score,
+              r.scan_count, r.scanned_at as last_scan_at,
+              (SELECT array_agg(sub.score ORDER BY sub.scanned_at ASC)
+               FROM (SELECT score, scanned_at FROM scan_results
+                     WHERE domain = r.domain AND status = 'completed' AND score IS NOT NULL
+                     ORDER BY scanned_at DESC LIMIT 10) sub
+              ) as recent_scores
+       FROM ranked r
+       WHERE r.rn = 1
+       ORDER BY r.scanned_at DESC
        LIMIT $1`,
       [limit]
     );
@@ -219,6 +225,7 @@ export class PgStore {
       previousScore: r.previous_score,
       scanCount: parseInt(r.scan_count, 10),
       lastScanAt: r.last_scan_at,
+      recentScores: r.recent_scores ?? [],
     }));
   }
 

@@ -108,6 +108,7 @@ export interface DomainSummary {
   previousScore: number | null;
   scanCount: number;
   lastScanAt: string;
+  recentScores: number[];
 }
 
 export async function getRecentDomains(limit = 20): Promise<{ domains: DomainSummary[] }> {
