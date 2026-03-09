@@ -314,6 +314,20 @@ export function HelpPage() {
           </div>
         </motion.section>
 
+        {/* Contact & Feedback */}
+        <motion.section variants={fadeUp} className="glass rounded-2xl p-6 sm:p-8 space-y-4 border-l-2 border-brand-500/50">
+          <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200">
+            Contact &amp; Feedback
+          </h2>
+          <p className="text-sm text-slate-400 leading-relaxed">
+            Have questions, feedback, or suggestions for improvement? We'd love to hear from you.
+            Reach out at{' '}
+            <a href="mailto:info@eaachecker.net" className="text-brand-400 hover:text-brand-300 underline underline-offset-2 transition-colors">
+              info@eaachecker.net
+            </a>
+          </p>
+        </motion.section>
+
         {/* CTA */}
         <motion.div variants={fadeUp} className="text-center pt-4">
           <Link

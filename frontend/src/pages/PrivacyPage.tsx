@@ -139,7 +139,11 @@ export function PrivacyPage() {
           </h2>
           <p className="text-sm text-slate-400 leading-relaxed">
             Scan results are kept indefinitely to support historical comparisons and trend tracking.
-            If you'd like a scan removed, get in touch and we'll take care of it.
+            If you'd like a scan removed, email us at{' '}
+            <a href="mailto:info@eaachecker.net" className="text-brand-400 hover:text-brand-300 underline underline-offset-2 transition-colors">
+              info@eaachecker.net
+            </a>{' '}
+            and we'll take care of it.
           </p>
         </motion.section>
 
@@ -149,8 +153,11 @@ export function PrivacyPage() {
             Questions?
           </h2>
           <p className="text-sm text-slate-400 leading-relaxed">
-            If anything here is unclear, feel free to reach out. We built a tool to help with
-            accessibility compliance — the least we can do is be upfront about how it works.
+            If anything here is unclear, reach out at{' '}
+            <a href="mailto:info@eaachecker.net" className="text-brand-400 hover:text-brand-300 underline underline-offset-2 transition-colors">
+              info@eaachecker.net
+            </a>
+            . We built a tool to help with accessibility compliance — the least we can do is be upfront about how it works.
           </p>
         </motion.section>
 
