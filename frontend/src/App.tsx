@@ -1,3 +1,4 @@
+import { useState, createContext, useContext } from 'react';
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import { ScanPage } from './pages/ScanPage';
 import { ReportPage } from './pages/ReportPage';
@@ -6,7 +7,12 @@ import { HistoryPage } from './pages/HistoryPage';
 import { PrivacyPage } from './pages/PrivacyPage';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 
-const APP_VERSION = '0.6.1';
+// Scan state context for reactive ambient background
+type ScanState = 'idle' | 'scanning' | 'passing' | 'failing';
+const ScanStateContext = createContext<{ state: ScanState; setState: (s: ScanState) => void }>({ state: 'idle', setState: () => {} });
+export function useScanState() { return useContext(ScanStateContext); }
+
+const APP_VERSION = '0.7.0';
 
 function ThemeToggle() {
   const { theme, toggleTheme } = useTheme();
@@ -29,10 +35,24 @@ function ThemeToggle() {
   );
 }
 
-function AppContent() {
+function AmbientBlobs({ state }: { state: ScanState }) {
   return (
+    <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none" aria-hidden="true">
+      <div className={`ambient-blob ambient-blob-1 ${state}`} />
+      <div className={`ambient-blob ambient-blob-2 ${state}`} />
+      <div className={`ambient-blob ambient-blob-3 ${state}`} />
+    </div>
+  );
+}
+
+function AppContent() {
+  const [scanState, setScanState] = useState<ScanState>('idle');
+
+  return (
+    <ScanStateContext.Provider value={{ state: scanState, setState: setScanState }}>
     <BrowserRouter>
       <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-surface-950 text-slate-900 dark:text-slate-100 font-sans">
+        <AmbientBlobs state={scanState} />
         <a
           href="#main-content"
           className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:rounded-lg focus:bg-brand-600 focus:px-4 focus:py-2 focus:text-white focus:outline-2 focus:outline-offset-2 focus:outline-brand-400"
@@ -102,6 +122,7 @@ function AppContent() {
         </footer>
       </div>
     </BrowserRouter>
+    </ScanStateContext.Provider>
   );
 }
 

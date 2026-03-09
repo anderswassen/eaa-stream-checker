@@ -6,6 +6,7 @@ import { getReport, getScore, getComparison } from '../api/client';
 import type { ScoreResponse, ComparisonResponse } from '../api/client';
 import { ClauseSection } from '../components/ClauseSection';
 import { ScoreGauge } from '../components/ScoreGauge';
+import { RadarChart } from '../components/RadarChart';
 import { FilterBar } from '../components/FilterBar';
 import { ReportTOC } from '../components/ReportTOC';
 import { exportPdf } from '../utils/pdfExport';
@@ -219,8 +220,9 @@ export function ReportPage() {
 
             <div className="glass rounded-2xl p-6 sm:p-8">
               <div className="flex flex-col sm:flex-row items-center gap-8">
-                <div className="shrink-0">
+                <div className="shrink-0 flex flex-col sm:flex-row items-center gap-6">
                   <ScoreGauge score={score} />
+                  <RadarChart clauses={report.clauses} size={180} />
                 </div>
 
                 <div className="flex-1 space-y-5 w-full">

@@ -2,8 +2,9 @@ import { useState, useRef, useEffect, type FormEvent } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { startScan, getScanStatus } from '../api/client';
-import { ScanActivityLog } from '../components/ScanActivityLog';
 import { DomainDashboard } from '../components/DomainDashboard';
+import { BentoScanView } from '../components/BentoScanView';
+import { useScanState } from '../App';
 
 function normalizeUrl(value: string): string {
   const trimmed = value.trim();
@@ -78,36 +79,18 @@ function useTypingPlaceholder(urls: string[], typingSpeed = 60, pauseMs = 2000) 
   return text;
 }
 
-const scanSteps = [
-  { label: 'Connecting', description: 'Loading page in browser' },
-  { label: 'Analyzing', description: 'Running accessibility checks' },
-  { label: 'Streaming', description: 'Checking video player compliance' },
-  { label: 'Crawling', description: 'Scanning additional pages' },
-  { label: 'Mapping', description: 'Mapping findings to EN 301 549' },
-  { label: 'Finalizing', description: 'Generating report' },
-];
-
-const scanStepsSingle = [
-  { label: 'Connecting', description: 'Loading page in browser' },
-  { label: 'Analyzing', description: 'Running accessibility checks' },
-  { label: 'Streaming', description: 'Checking video player compliance' },
-  { label: 'Mapping', description: 'Mapping findings to EN 301 549' },
-  { label: 'Finalizing', description: 'Generating report' },
-];
-
 export function ScanPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [url, setUrl] = useState('');
   const [error, setError] = useState('');
   const [scanning, setScanning] = useState(false);
-  const [scanStep, setScanStep] = useState(0);
+  const [scanId, setScanId] = useState<string | null>(null);
   const [deepScan, setDeepScan] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
+  const { setState: setScanState } = useScanState();
   const typingPlaceholder = useTypingPlaceholder(exampleUrls);
   const autoScanTriggered = useRef(false);
-
-  const steps = deepScan ? scanSteps : scanStepsSingle;
 
   // Auto-scan from ?scan=URL query param (used by History page re-scan)
   useEffect(() => {
@@ -127,16 +110,19 @@ export function ScanPage() {
 
   async function runScan(targetUrl: string) {
     setScanning(true);
-    setScanStep(0);
+    setScanId(null);
     setError('');
+    setScanState('scanning');
 
     try {
       const { id } = await startScan({ url: targetUrl, deepScan, maxPages: 5 });
-      setScanStep(1);
+      setScanId(id);
 
+      // Polling fallback (SSE in BentoScanView handles the visual updates,
+      // but we still poll to detect completion if SSE disconnects)
       let status = 'in_progress';
       let pollCount = 0;
-      const maxPolls = deepScan ? 90 : 45; // 3 min deep, 1.5 min single
+      const maxPolls = deepScan ? 90 : 45;
       while (status === 'in_progress') {
         await new Promise((r) => setTimeout(r, 2000));
         pollCount++;
@@ -154,30 +140,17 @@ export function ScanPage() {
               : 'Scan failed. Please check the URL and try again.';
           throw new Error(userMsg);
         }
-        if (status === 'in_progress') {
-          const last = steps.length - 1;
-          if (deepScan) {
-            if (pollCount >= 25) setScanStep(last);
-            else if (pollCount >= 20) setScanStep(last - 1);
-            else if (pollCount >= 12) setScanStep(3);
-            else if (pollCount >= 6) setScanStep(2);
-            else if (pollCount >= 2) setScanStep(1);
-          } else {
-            if (pollCount >= 17) setScanStep(last);
-            else if (pollCount >= 13) setScanStep(last - 1);
-            else if (pollCount >= 8) setScanStep(2);
-            else if (pollCount >= 3) setScanStep(1);
-          }
-        }
       }
 
+      setScanState('idle');
       navigate(`/report/${id}`);
     } catch (err) {
       setError(
         err instanceof Error ? err.message : 'An unexpected error occurred.',
       );
       setScanning(false);
-      setScanStep(0);
+      setScanId(null);
+      setScanState('idle');
       inputRef.current?.focus();
     }
   }
@@ -338,61 +311,27 @@ export function ScanPage() {
           </div>
         </motion.div>
 
-        {/* Scan progress */}
+        {/* Scan progress — Bento streaming view */}
         <AnimatePresence>
-          {scanning && (
+          {scanning && scanId && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               role="status"
               aria-live="polite"
-              className="space-y-6"
             >
-              {/* Animated scanner orb */}
-              <div className="flex justify-center">
-                <div className="relative h-16 w-16">
-                  <div className="absolute inset-0 rounded-full bg-brand-500/20 pulse-ring" />
-                  <div className="absolute inset-2 rounded-full bg-brand-500/30 pulse-ring" style={{ animationDelay: '0.4s' }} />
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="h-8 w-8 rounded-full bg-gradient-to-br from-brand-400 to-cyan-400 shadow-lg shadow-brand-500/50" />
-                  </div>
-                </div>
-              </div>
-
-              {/* Step indicators */}
-              <div className="flex justify-center gap-2">
-                {steps.map((step, i) => (
-                  <div key={step.label} className="flex items-center gap-2">
-                    <div className="flex flex-col items-center gap-1.5">
-                      <div
-                        className={`h-2.5 w-2.5 rounded-full transition-all duration-500 ${
-                          i <= scanStep
-                            ? 'bg-brand-400 shadow-sm shadow-brand-400/50'
-                            : 'bg-slate-300 dark:bg-slate-700'
-                        }`}
-                      />
-                      <span className={`text-xs transition-colors duration-300 ${
-                        i === scanStep ? 'text-brand-600 dark:text-brand-300 font-medium' : 'text-slate-400 dark:text-slate-600'
-                      }`}>
-                        {step.label}
-                      </span>
-                    </div>
-                    {i < steps.length - 1 && (
-                      <div className={`h-px w-8 mb-5 transition-colors duration-500 ${
-                        i < scanStep ? 'bg-brand-500' : 'bg-slate-300 dark:bg-slate-700'
-                      }`} />
-                    )}
-                  </div>
-                ))}
-              </div>
-
-              <p className="text-slate-600 dark:text-slate-400 text-sm">
-                {steps[scanStep].description}...
-              </p>
-
-              {/* Terminal activity log */}
-              <ScanActivityLog scanStep={scanStep} deepScan={deepScan} targetUrl={url} />
+              <BentoScanView
+                scanId={scanId}
+                targetUrl={url}
+                deepScan={deepScan}
+                onComplete={(completedId) => navigate(`/report/${completedId}`)}
+                onError={(msg) => {
+                  setError(msg);
+                  setScanning(false);
+                  setScanId(null);
+                }}
+              />
             </motion.div>
           )}
         </AnimatePresence>

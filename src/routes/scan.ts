@@ -4,6 +4,7 @@ import type { AuditRequest, AuditResult, AuditStore, PageResult, AuditViolation 
 import { crawlPage, extractInternalLinks } from "../services/crawler.js";
 import { analyzePage } from "../services/analyzer.js";
 import { prepareStreamingAnalysis } from "../services/streaming/index.js";
+import { createScanEmitter, getScanEmitter, emitScanProgress } from "../scan-events.js";
 
 export async function scanRoutes(app: FastifyInstance, store: AuditStore) {
   // POST /scan — start an async scan
@@ -28,6 +29,7 @@ export async function scanRoutes(app: FastifyInstance, store: AuditStore) {
     };
 
     store.set(id, audit);
+    createScanEmitter(id);
     reply.status(202).send({ id, status: "pending", url });
 
     // Run the scan asynchronously
@@ -86,6 +88,58 @@ export async function scanRoutes(app: FastifyInstance, store: AuditStore) {
       violationCount: a.violations.length,
     }));
   });
+
+  // GET /scan/:id/stream — SSE endpoint for real-time scan progress
+  app.get<{ Params: { id: string } }>("/scan/:id/stream", async (request, reply) => {
+    const emitter = getScanEmitter(request.params.id);
+
+    reply.hijack();
+    reply.raw.writeHead(200, {
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache",
+      Connection: "keep-alive",
+      "X-Accel-Buffering": "no",
+      "Access-Control-Allow-Origin": "*",
+    });
+
+    if (!emitter) {
+      // Scan already completed or not found — send complete immediately
+      const audit = store.get(request.params.id);
+      if (audit && audit.status === "completed") {
+        const total = audit.violations.length + audit.passes + audit.incomplete + audit.inapplicable;
+        const score = total > 0 ? Math.round(((total - audit.violations.length) / total) * 100) : 0;
+        reply.raw.write(`data: ${JSON.stringify({ type: "complete", id: audit.id, score })}\n\n`);
+      } else if (audit && audit.status === "failed") {
+        reply.raw.write(`data: ${JSON.stringify({ type: "error", message: audit.error ?? "Scan failed" })}\n\n`);
+      }
+      reply.raw.end();
+      return;
+    }
+
+    const handler = (data: unknown) => {
+      try {
+        reply.raw.write(`data: ${JSON.stringify(data)}\n\n`);
+      } catch {
+        // Client disconnected
+      }
+    };
+
+    emitter.on("progress", handler);
+
+    // Keepalive every 15s
+    const keepalive = setInterval(() => {
+      try {
+        reply.raw.write(": keepalive\n\n");
+      } catch {
+        clearInterval(keepalive);
+      }
+    }, 15000);
+
+    request.raw.on("close", () => {
+      clearInterval(keepalive);
+      emitter.off("progress", handler);
+    });
+  });
 }
 
 async function runScan(
@@ -104,6 +158,8 @@ async function runScan(
   audit.status = "running";
   const start = Date.now();
 
+  emitScanProgress(id, { type: "phase", phase: "connecting", message: "Loading page in browser" });
+
   let context;
   try {
     const crawl = await crawlPage(url, {
@@ -111,6 +167,8 @@ async function runScan(
       timeout: options.timeout,
     });
     context = crawl.context;
+
+    emitScanProgress(id, { type: "phase", phase: "analyzing", message: "Running accessibility checks" });
 
     // Run axe-core web accessibility audit on the primary page
     const analysis = await analyzePage(crawl.page, options.tags, {
@@ -122,6 +180,13 @@ async function runScan(
     audit.passes = analysis.passes;
     audit.incomplete = analysis.incomplete;
     audit.inapplicable = analysis.inapplicable;
+
+    emitScanProgress(id, {
+      type: "web_complete",
+      passed: analysis.passes,
+      failed: analysis.violations.length,
+      incomplete: analysis.incomplete,
+    });
 
     const pageResults: PageResult[] = [
       {
@@ -139,19 +204,41 @@ async function runScan(
       });
 
       if (hasVideo) {
+        emitScanProgress(id, { type: "phase", phase: "streaming", message: "Analyzing video player" });
         const streaming = prepareStreamingAnalysis(crawl.page);
         await streaming.setupInterception();
         await crawl.page.reload({ waitUntil: "domcontentloaded" });
         await crawl.page.waitForTimeout(3000);
         audit.streaming = await streaming.analyze();
+
+        emitScanProgress(id, {
+          type: "streaming_complete",
+          playerType: audit.streaming.playerType,
+          hasCaptions: audit.streaming.captions?.hasCaptions ?? false,
+          hasAudioDescription: audit.streaming.audioDescription?.hasAudioDescription ?? false,
+        });
+      } else {
+        // No video — emit streaming complete with null
+        emitScanProgress(id, {
+          type: "streaming_complete",
+          playerType: null,
+          hasCaptions: false,
+          hasAudioDescription: false,
+        });
       }
-      // No video/player detected — skip streaming analysis entirely
     } catch (streamingErr) {
       console.warn("Streaming analysis failed:", streamingErr);
+      emitScanProgress(id, {
+        type: "streaming_complete",
+        playerType: null,
+        hasCaptions: false,
+        hasAudioDescription: false,
+      });
     }
 
     // Deep scan: crawl additional internal pages
     if (options.deepScan) {
+      emitScanProgress(id, { type: "phase", phase: "crawling", message: "Scanning additional pages" });
       const maxPages = Math.min(options.maxPages ?? 5, 10);
       const internalLinks = await extractInternalLinks(crawl.page, url, maxPages * 2);
       // Filter out the seed URL and take up to maxPages - 1 additional pages
@@ -199,6 +286,14 @@ async function runScan(
             violationCount: pageAnalysis.violations.length,
             duration: Date.now() - pageStart,
           });
+          emitScanProgress(id, {
+            type: "page_scanned",
+            pageUrl,
+            pageTitle: pageCrawl.title,
+            pageViolations: pageAnalysis.violations.length,
+            pageCurrent: pageResults.length,
+            pageTotal: additionalUrls.length + 1,
+          });
         } catch (pageErr) {
           console.warn(`Deep scan page failed (${pageUrl}):`, pageErr);
           pageResults.push({
@@ -215,12 +310,20 @@ async function runScan(
       audit.pagesScanned = pageResults;
     }
 
+    emitScanProgress(id, { type: "phase", phase: "mapping", message: "Building compliance report" });
+
     audit.status = "completed";
     audit.duration = Date.now() - start;
+
+    // Compute score for SSE
+    const totalChecks = audit.violations.length + audit.passes + audit.incomplete + audit.inapplicable;
+    const scanScore = totalChecks > 0 ? Math.round(((totalChecks - audit.violations.length) / totalChecks) * 100) : 0;
+    emitScanProgress(id, { type: "complete", id, score: scanScore });
   } catch (err) {
     audit.status = "failed";
     audit.error = err instanceof Error ? err.message : String(err);
     audit.duration = Date.now() - start;
+    emitScanProgress(id, { type: "error", message: audit.error });
   } finally {
     if (context) {
       await context.close();
