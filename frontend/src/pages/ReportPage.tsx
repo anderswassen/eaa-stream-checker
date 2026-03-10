@@ -527,7 +527,7 @@ export function ReportPage() {
                       </div>
                       <div>
                         <h2 id="web-heading" className="text-xl font-bold text-slate-800 dark:text-slate-200">
-                          Web Content (WCAG 2.2 AA)
+                          Web Content (WCAG 2.1 & 2.2 AA)
                         </h2>
                         <p className="text-xs text-slate-500">
                           EN 301 549 Clause 9 — Perceivable, Operable, Understandable, Robust
