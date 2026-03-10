@@ -5,7 +5,7 @@ import type { AuditViolation } from "../types/audit.js";
 import { mapWcagCriteriaToClauseIds } from "../mappings/en301549.js";
 import { screenshotElement } from "./crawler.js";
 
-const DEFAULT_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"];
+const DEFAULT_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];
 
 export interface AnalysisResult {
   violations: AuditViolation[];

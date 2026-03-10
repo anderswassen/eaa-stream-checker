@@ -17,7 +17,7 @@ import { closeBrowser } from "./services/crawler.js";
 const HOST = process.env.HOST ?? "0.0.0.0";
 const PORT = parseInt(process.env.PORT ?? "8080", 10);
 const GIT_SHA = process.env.GIT_SHA ?? "dev";
-const APP_VERSION = "0.8.0";
+const APP_VERSION = "0.9.0";
 const DATABASE_URL = process.env.DATABASE_URL;
 
 const app = Fastify({
@@ -100,7 +100,7 @@ if (existsSync(frontendDist)) {
   const routeMeta: Record<string, RouteMeta> = {
     "/": {
       title: "EAA Compliance Checker — European Accessibility Act & EN 301 549 Scanner",
-      description: "Free EAA compliance checker for streaming services. Test your site against the European Accessibility Act (Directive 2019/882) and EN 301 549 in 30 seconds. Automated WCAG 2.1 AA audit, caption checks, audio description, player accessibility — full compliance report.",
+      description: "Free EAA compliance checker for streaming services. Test your site against the European Accessibility Act (Directive 2019/882) and EN 301 549 in 30 seconds. Automated WCAG 2.2 AA audit, caption checks, audio description, player accessibility — full compliance report.",
       canonical: "https://www.eaachecker.net/",
     },
     "/guides": {
@@ -140,13 +140,18 @@ if (existsSync(frontendDist)) {
     },
     "/help": {
       title: "Help & EN 301 549 Regulatory Context | EAA Checker",
-      description: "How EAA Stream Checker works, what EN 301 549 requires for streaming services, Clause 7 video checks, WCAG 2.1 AA audit details, and key European Accessibility Act regulatory dates.",
+      description: "How EAA Stream Checker works, what EN 301 549 requires for streaming services, Clause 7 video checks, WCAG 2.2 AA audit details, and key European Accessibility Act regulatory dates.",
       canonical: "https://www.eaachecker.net/help",
     },
     "/privacy": {
       title: "Privacy & Data Policy | EAA Checker",
       description: "EAA Stream Checker privacy policy. Learn how we handle your data, what we store, and how scans work. No cookies, no tracking, no third-party data sharing.",
       canonical: "https://www.eaachecker.net/privacy",
+    },
+    "/accessibility": {
+      title: "Accessibility Statement | EAA Checker",
+      description: "EAA Checker accessibility statement. Learn about the accessibility features, known limitations, and how to report issues with this tool.",
+      canonical: "https://www.eaachecker.net/accessibility",
     },
   };
 

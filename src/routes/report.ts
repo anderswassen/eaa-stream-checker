@@ -24,6 +24,7 @@ interface Clause {
   findings: Finding[];
   recommendation?: string;
   helpText?: string;
+  wcag22Only?: boolean;
 }
 
 interface PageScanned {
@@ -114,6 +115,7 @@ export async function reportRoutes(app: FastifyInstance, store: AuditStore) {
           status: violations.length > 0 ? ("fail" as const) : ("pass" as const),
           findings,
           helpText: clause.helpText,
+          ...(clause.wcag22Only && { wcag22Only: true }),
         };
       }
     );

@@ -242,7 +242,7 @@ export async function exportPdf(report: ScanReport) {
       ? [{ heading: 'Clause 7 — Video & Streaming', clauses: videoClauses, accentColor: [139, 92, 246] as [number, number, number] }]
       : []),
     ...(webClauses.length > 0
-      ? [{ heading: 'Clause 9 — Web Content (WCAG 2.1 AA)', clauses: webClauses, accentColor: COLORS.cyan }]
+      ? [{ heading: 'Clause 9 — Web Content (WCAG 2.2 AA)', clauses: webClauses, accentColor: COLORS.cyan }]
       : []),
   ];
 

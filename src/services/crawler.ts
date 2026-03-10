@@ -148,7 +148,7 @@ export async function crawlPage(
   url: string,
   options: CrawlOptions = {}
 ): Promise<CrawlResult> {
-  const timeout = Math.min(options.timeout ?? 30000, 120000);
+  const timeout = Math.min(options.timeout ?? 45000, 120000);
   const instance = await getBrowser();
 
   const context = await instance.newContext({

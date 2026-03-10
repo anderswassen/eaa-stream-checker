@@ -6,6 +6,7 @@ import { ReportPage } from './pages/ReportPage';
 import { HelpPage } from './pages/HelpPage';
 import { HistoryPage } from './pages/HistoryPage';
 import { PrivacyPage } from './pages/PrivacyPage';
+import { AccessibilityPage } from './pages/AccessibilityPage';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 
 const GuidePage = lazy(() => import('./pages/GuidePage').then(m => ({ default: m.GuidePage })));
@@ -16,7 +17,7 @@ type ScanState = 'idle' | 'scanning' | 'passing' | 'failing';
 const ScanStateContext = createContext<{ state: ScanState; setState: (s: ScanState) => void }>({ state: 'idle', setState: () => {} });
 export function useScanState() { return useContext(ScanStateContext); }
 
-const APP_VERSION = '0.8.0';
+const APP_VERSION = '0.9.0';
 
 function ThemeToggle() {
   const { theme, toggleTheme } = useTheme();
@@ -111,6 +112,7 @@ function AppContent() {
             <Route path="/history" element={<HistoryPage />} />
             <Route path="/help" element={<HelpPage />} />
             <Route path="/privacy" element={<PrivacyPage />} />
+            <Route path="/accessibility" element={<AccessibilityPage />} />
             <Route path="/guides" element={<GuidesIndexPage />} />
             <Route path="/guide/:slug" element={<GuidePage />} />
           </Routes>
@@ -127,6 +129,12 @@ function AppContent() {
                 className="text-xs text-slate-400 hover:text-slate-200 transition-colors"
               >
                 Privacy &amp; Data
+              </Link>
+              <Link
+                to="/accessibility"
+                className="text-xs text-slate-400 hover:text-slate-200 transition-colors"
+              >
+                Accessibility
               </Link>
             </div>
             <div className="flex items-center gap-3">

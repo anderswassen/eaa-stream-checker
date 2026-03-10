@@ -185,7 +185,7 @@ export function ScanPage() {
     <main id="main-content" className="flex-1 flex items-center justify-center px-4 gradient-mesh">
       <SEO
         title="EAA Compliance Checker — European Accessibility Act & EN 301 549 Scanner"
-        description="Free EAA compliance checker for streaming services. Test your site against the European Accessibility Act (Directive 2019/882) and EN 301 549 in 30 seconds. Automated WCAG 2.1 AA audit, caption checks, audio description, player accessibility — full compliance report."
+        description="Free EAA compliance checker for streaming services. Test your site against the European Accessibility Act (Directive 2019/882) and EN 301 549 in 30 seconds. Automated WCAG 2.2 AA audit, caption checks, audio description, player accessibility — full compliance report."
         path="/"
       />
       <div className="w-full max-w-2xl space-y-10 text-center py-16">
@@ -353,7 +353,7 @@ export function ScanPage() {
             >
               {[
                 { icon: '7', title: 'Clause 7', desc: 'Video & streaming player checks' },
-                { icon: '9', title: 'Clause 9', desc: 'WCAG 2.1 AA web content audit' },
+                { icon: '9', title: 'Clause 9', desc: 'WCAG 2.2 AA web content audit' },
                 { icon: 'EN', title: 'EN 301 549', desc: 'Full standard compliance mapping' },
               ].map((feature) => (
                 <div

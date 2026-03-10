@@ -204,7 +204,7 @@ export async function exportVpat(report: ScanReport) {
   pdf.setTextColor(...COLORS.slate700);
   pdf.setFontSize(8);
   const notes = [
-    'This VPAT covers EN 301 549 Clause 7 (Video & Streaming) and Clause 9 (Web Content / WCAG 2.1 AA).',
+    'This VPAT covers EN 301 549 Clause 7 (Video & Streaming) and Clause 9 (Web Content / WCAG 2.2 AA).',
     'Conformance levels are based on automated testing. "Partially Supports" indicates items requiring manual review.',
     'This report should be supplemented with manual accessibility testing for complete coverage.',
     `Assessment was performed on ${scannedDate}.${report.deepScan ? ` Deep scan covered ${report.pagesScanned?.length ?? 1} pages.` : ''}`,
@@ -316,8 +316,8 @@ export async function exportVpat(report: ScanReport) {
 
   if (webClauses.length > 0) {
     renderTable(
-      'Clause 9 — Web Content (WCAG 2.1 AA)',
-      'EN 301 549 requirements mapped to WCAG 2.1 Level A and Level AA success criteria',
+      'Clause 9 — Web Content (WCAG 2.2 AA)',
+      'EN 301 549 requirements mapped to WCAG 2.2 Level A and Level AA success criteria',
       webClauses,
       [6, 182, 212],
     );
@@ -338,7 +338,7 @@ export async function exportVpat(report: ScanReport) {
   pdf.setTextColor(...COLORS.slate700);
   const legalText = [
     'This Accessibility Conformance Report (ACR) follows the VPAT\u00AE 2.5 format for the EU edition, covering EN 301 549 V3.2.1 (2021-03) as required by the European Accessibility Act (Directive (EU) 2019/882).',
-    'Automated testing was performed using axe-core (WCAG 2.1 AA rules) and custom streaming-specific checks for EN 301 549 Clause 7. Results should be supplemented with manual testing, particularly for criteria marked "Partially Supports."',
+    'Automated testing was performed using axe-core (WCAG 2.2 AA rules) and custom streaming-specific checks for EN 301 549 Clause 7. Results should be supplemented with manual testing, particularly for criteria marked "Partially Supports."',
     'Conformance levels: "Supports" = functionality meets the criterion; "Partially Supports" = some aspects meet the criterion; "Does Not Support" = functionality does not meet the criterion; "Not Applicable" = criterion is not relevant to the product.',
     'VPAT\u00AE is a registered trademark of the Information Technology Industry Council (ITI). This report was generated automatically and should be reviewed by a qualified accessibility professional before submission.',
   ];

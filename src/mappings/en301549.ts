@@ -1,6 +1,6 @@
 import type { EN301549Clause } from "../types/audit.js";
 
-// EN 301 549 Clause 9 maps directly to WCAG 2.1 Level AA success criteria.
+// EN 301 549 Clause 9 maps directly to WCAG 2.2 Level AA success criteria.
 // The clause numbering mirrors WCAG: EN 301 549 clause 9.X.Y.Z corresponds to WCAG X.Y.Z.
 
 const clause9Mappings: Record<string, EN301549Clause> = {
@@ -40,10 +40,13 @@ const clause9Mappings: Record<string, EN301549Clause> = {
   "2.4.5": { id: "9.2.4.5", title: "Multiple Ways", wcagMapping: "2.4.5", helpText: "Provide more than one way to find a page within your service, such as search, navigation menus, or a site map." },
   "2.4.6": { id: "9.2.4.6", title: "Headings and Labels", wcagMapping: "2.4.6", helpText: "Headings and form labels must clearly describe the topic or purpose of the content they introduce." },
   "2.4.7": { id: "9.2.4.7", title: "Focus Visible", wcagMapping: "2.4.7", helpText: "Keyboard focus must be visually indicated so users can see which element is currently active." },
+  "2.4.11": { id: "9.2.4.11", title: "Focus Not Obscured (Minimum)", wcagMapping: "2.4.11", wcag22Only: true, helpText: "When a component receives keyboard focus, it must not be entirely hidden by other content (like sticky headers or modals). At least part of the focused element must be visible." },
   "2.5.1": { id: "9.2.5.1", title: "Pointer Gestures", wcagMapping: "2.5.1", helpText: "Any action requiring multi-point or path-based gestures (like pinch or swipe) must also work with a simple single-pointer tap or click." },
   "2.5.2": { id: "9.2.5.2", title: "Pointer Cancellation", wcagMapping: "2.5.2", helpText: "Actions must not trigger on the down-press of a pointer; users must be able to cancel by moving away before releasing." },
   "2.5.3": { id: "9.2.5.3", title: "Label in Name", wcagMapping: "2.5.3", helpText: "The accessible name of a component must include the visible label text so voice control users can activate it by speaking what they see." },
   "2.5.4": { id: "9.2.5.4", title: "Motion Actuation", wcagMapping: "2.5.4", helpText: "Any action triggered by device motion (like shaking) must also be available through standard UI controls and be disableable." },
+  "2.5.7": { id: "9.2.5.7", title: "Dragging Movements", wcagMapping: "2.5.7", wcag22Only: true, helpText: "Any action that requires a dragging movement (like drag-and-drop) must also be achievable with a simple pointer action (click/tap) for users who cannot perform drag gestures." },
+  "2.5.8": { id: "9.2.5.8", title: "Target Size (Minimum)", wcagMapping: "2.5.8", wcag22Only: true, helpText: "Interactive targets must be at least 24×24 CSS pixels, or have sufficient spacing from other targets, so users with limited dexterity can activate them reliably." },
 
   // Principle 3: Understandable
   "3.1.1": { id: "9.3.1.1", title: "Language of Page", wcagMapping: "3.1.1", helpText: "The page must declare its primary language (e.g., lang='en') so screen readers use the correct pronunciation." },
@@ -52,10 +55,13 @@ const clause9Mappings: Record<string, EN301549Clause> = {
   "3.2.2": { id: "9.3.2.2", title: "On Input", wcagMapping: "3.2.2", helpText: "Changing a form input value must not automatically cause unexpected actions unless the user is warned in advance." },
   "3.2.3": { id: "9.3.2.3", title: "Consistent Navigation", wcagMapping: "3.2.3", helpText: "Navigation menus must appear in the same order on every page so users can predict where to find things." },
   "3.2.4": { id: "9.3.2.4", title: "Consistent Identification", wcagMapping: "3.2.4", helpText: "Components with the same function must be identified consistently across all pages (same icons, labels, and names)." },
+  "3.2.6": { id: "9.3.2.6", title: "Consistent Help", wcagMapping: "3.2.6", wcag22Only: true, helpText: "If a help mechanism (contact info, chat, FAQ link) is provided on multiple pages, it must appear in the same relative order so users can reliably find it." },
   "3.3.1": { id: "9.3.3.1", title: "Error Identification", wcagMapping: "3.3.1", helpText: "When a form error is detected, the specific field in error must be identified and the error described in text." },
   "3.3.2": { id: "9.3.3.2", title: "Labels or Instructions", wcagMapping: "3.3.2", helpText: "Form fields must have visible labels or instructions so users know what information is expected." },
   "3.3.3": { id: "9.3.3.3", title: "Error Suggestion", wcagMapping: "3.3.3", helpText: "When an input error is detected, suggest a correction if possible (e.g., 'Did you mean .com instead of .con?')." },
   "3.3.4": { id: "9.3.3.4", title: "Error Prevention (Legal, Financial, Data)", wcagMapping: "3.3.4", helpText: "For actions with legal or financial consequences, users must be able to review, correct, or reverse their submissions." },
+  "3.3.7": { id: "9.3.3.7", title: "Redundant Entry", wcagMapping: "3.3.7", wcag22Only: true, helpText: "Information previously entered by the user in the same process must be auto-populated or available for selection, so users don't have to re-enter the same data." },
+  "3.3.8": { id: "9.3.3.8", title: "Accessible Authentication (Minimum)", wcagMapping: "3.3.8", wcag22Only: true, helpText: "Authentication must not require a cognitive function test (like memorizing a password or solving a puzzle) unless an alternative method or assistance is provided." },
 
   // Principle 4: Robust
   "4.1.1": { id: "9.4.1.1", title: "Parsing", wcagMapping: "4.1.1", helpText: "The page HTML must be well-formed with no duplicate IDs or unclosed tags that could confuse assistive technologies." },

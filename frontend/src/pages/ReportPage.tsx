@@ -12,6 +12,7 @@ import { ReportTOC } from '../components/ReportTOC';
 import { SEO } from '../components/SEO';
 import { exportPdf } from '../utils/pdfExport';
 import { exportVpat } from '../utils/vpatExport';
+import { exportAccessibilityStatement } from '../utils/statementExport';
 
 const overallLabels: Record<ScanReport['summary']['overallStatus'], string> = {
   compliant: 'Compliant',
@@ -45,6 +46,7 @@ export function ReportPage() {
   const [error, setError] = useState('');
   const [exportingPdf, setExportingPdf] = useState(false);
   const [exportingVpat, setExportingVpat] = useState(false);
+  const [exportingStatement, setExportingStatement] = useState(false);
   const [revealed, setRevealed] = useState(false);
   const [scoreData, setScoreData] = useState<ScoreResponse | null>(null);
   const [comparison, setComparison] = useState<ComparisonResponse | null>(null);
@@ -181,6 +183,16 @@ export function ReportPage() {
       await exportVpat(report);
     } finally {
       setExportingVpat(false);
+    }
+  }
+
+  function handleExportStatement() {
+    if (!report) return;
+    setExportingStatement(true);
+    try {
+      exportAccessibilityStatement(report);
+    } finally {
+      setExportingStatement(false);
     }
   }
 
@@ -352,6 +364,16 @@ export function ReportPage() {
                 {exportingVpat ? 'Generating VPAT...' : 'Export VPAT / ACR'}
               </button>
               <button
+                onClick={handleExportStatement}
+                disabled={exportingStatement}
+                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 px-5 py-2.5 text-sm font-semibold text-white hover:from-emerald-500 hover:to-teal-400 focus:outline-2 focus:outline-offset-2 focus:outline-brand-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-emerald-500/20"
+              >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                {exportingStatement ? 'Generating...' : 'Accessibility Statement'}
+              </button>
+              <button
                 onClick={handleExportJson}
                 className="inline-flex items-center gap-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white/50 dark:bg-slate-800/50 px-5 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-slate-700/50 hover:text-slate-900 dark:hover:text-white focus:outline-2 focus:outline-offset-2 focus:outline-brand-400 transition-all"
               >
@@ -505,7 +527,7 @@ export function ReportPage() {
                       </div>
                       <div>
                         <h2 id="web-heading" className="text-xl font-bold text-slate-800 dark:text-slate-200">
-                          Web Content (WCAG 2.1 AA)
+                          Web Content (WCAG 2.2 AA)
                         </h2>
                         <p className="text-xs text-slate-500">
                           EN 301 549 Clause 9 — Perceivable, Operable, Understandable, Robust

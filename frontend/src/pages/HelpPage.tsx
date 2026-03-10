@@ -16,7 +16,7 @@ export function HelpPage() {
     <main id="main-content" className="flex-1 px-4 py-12">
       <SEO
         title="Help & EN 301 549 Regulatory Context"
-        description="How EAA Stream Checker works, what EN 301 549 requires for streaming services, Clause 7 video checks, WCAG 2.1 AA audit details, and key European Accessibility Act regulatory dates."
+        description="How EAA Stream Checker works, what EN 301 549 requires for streaming services, Clause 7 video checks, WCAG 2.2 AA audit details, and key European Accessibility Act regulatory dates."
         path="/help"
       />
       <motion.div
@@ -75,7 +75,7 @@ export function HelpPage() {
             What EN 301 549 Requires for Streaming Services
           </h2>
           <p className="text-sm text-slate-400 leading-relaxed">
-            EN 301 549 maps directly to WCAG 2.1 Level AA for web content, but extends well beyond it
+            EN 301 549 maps directly to WCAG 2.2 Level AA for web content, but extends well beyond it
             for media services. The standard imposes specific requirements across two key areas:
           </p>
           <div className="grid sm:grid-cols-2 gap-4 pt-2">
@@ -104,7 +104,7 @@ export function HelpPage() {
                 <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200">Clause 9 — Web Content</h3>
               </div>
               <ul className="text-xs text-slate-400 space-y-1 ml-9 list-disc">
-                <li>WCAG 2.1 Level AA conformance</li>
+                <li>WCAG 2.2 Level AA conformance</li>
                 <li>Perceivable: text alternatives, colour contrast, resizable text</li>
                 <li>Operable: keyboard navigation, focus management</li>
                 <li>Understandable: consistent navigation, error identification</li>
@@ -131,7 +131,7 @@ export function HelpPage() {
           <ul className="space-y-3 pt-1">
             {[
               {
-                title: 'Automated WCAG 2.1 AA audit',
+                title: 'Automated WCAG 2.2 AA audit',
                 desc: 'Runs a comprehensive axe-core analysis against your web content, mapping every finding directly to the relevant EN 301 549 clauses. Issues that would take days to identify manually are surfaced instantly.',
               },
               {
@@ -283,7 +283,7 @@ export function HelpPage() {
             {[
               { step: '1', text: 'Enter the URL of your streaming service on the home page and press "Check Compliance". Or, if you\'ve scanned before, use the one-click re-scan button on a domain card in the dashboard below.' },
               { step: '2', text: 'Optionally enable "Deep scan" to crawl internal pages for a broader assessment.' },
-              { step: '3', text: 'The tool loads your site in a headless browser, runs WCAG 2.1 AA checks, analyses the video player, streaming manifests, captions, DRM, and embedded iframes.' },
+              { step: '3', text: 'The tool loads your site in a headless browser, runs WCAG 2.2 AA checks, analyses the video player, streaming manifests, captions, DRM, and embedded iframes.' },
               { step: '4', text: 'Review the compliance report. Each finding is categorised by EN 301 549 clause, severity, and status (pass, fail, or needs review). Look for Regression and Fixed badges that highlight what changed since the last scan.' },
               { step: '5', text: 'Check the "Changes Since Last Scan" summary at the top of the report to quickly see regressions, fixes, and new issues compared to the previous scan.' },
               { step: '6', text: 'Export as PDF for documentation, JSON for internal systems, or VPAT 2.5 EU Edition for procurement and regulatory submissions.' },

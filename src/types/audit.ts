@@ -55,6 +55,7 @@ export interface EN301549Clause {
   title: string;
   wcagMapping?: string;
   helpText?: string;
+  wcag22Only?: boolean;
 }
 
 export interface ScanReport {

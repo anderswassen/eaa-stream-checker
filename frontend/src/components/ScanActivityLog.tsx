@@ -31,7 +31,7 @@ const STEP_MESSAGES: Record<number, string[]> = {
   ],
   1: [
     'Injecting axe-core v4.10 analysis engine',
-    'Configuring WCAG 2.1 Level AA ruleset',
+    'Configuring WCAG 2.2 Level AA ruleset',
     'Running {rulecount} accessibility rules...',
     'Rule: color-contrast — checking {n} text elements',
     'Rule: image-alt — scanning {n} images',

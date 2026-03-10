@@ -48,7 +48,7 @@ The key factor is whether the service is available to EU consumers. Even platfor
 
 **Clause 7 — ICT with Video Capabilities**: This clause covers everything specific to video playback. It requires caption support (7.1.1), caption synchronization (7.1.2), audio description (7.2.1), user controls for captions and audio description (7.3), and accessible player controls (7.4). These requirements go far beyond what a standard WCAG audit covers.
 
-**Clause 9 — Web Content**: This clause maps directly to WCAG 2.1 Level AA. It covers all the standard web accessibility requirements: text alternatives, colour contrast, keyboard navigation, focus management, ARIA markup, and more. Every page of your streaming service — not just the video player — must meet these criteria.
+**Clause 9 — Web Content**: This clause maps directly to WCAG 2.2 Level AA. It covers all the standard web accessibility requirements: text alternatives, colour contrast, keyboard navigation, focus management, ARIA markup, and more. Every page of your streaming service — not just the video player — must meet these criteria.
 
 The combination of Clause 7 and Clause 9 means streaming services face a dual compliance burden that most generic accessibility tools don't fully address.`
       },
@@ -72,7 +72,7 @@ The combination of Clause 7 and Clause 9 means streaming services face a dual co
         heading: 'How to Audit Your Streaming Platform',
         content: `A comprehensive EAA compliance audit for streaming involves several layers:
 
-1. **Web content audit**: Run a WCAG 2.1 AA audit on all pages — home, browse, search, account, player pages. Check every page a user might visit, not just the landing page.
+1. **Web content audit**: Run a WCAG 2.2 AA audit on all pages — home, browse, search, account, player pages. Check every page a user might visit, not just the landing page.
 
 2. **Video player audit**: Test the player interface for keyboard operability, screen reader compatibility, focus management, and control contrast. Test with multiple assistive technologies.
 
@@ -108,7 +108,7 @@ Enforcement is ramping up throughout 2026 as national authorities establish thei
 
 2. **Prioritise critical issues**: Focus first on Clause 7 caption and audio description requirements, and Clause 9 keyboard accessibility. These affect the largest number of users.
 
-3. **Fix web content issues**: Address WCAG 2.1 AA violations identified in the report. Most are straightforward CSS and HTML fixes.
+3. **Fix web content issues**: Address WCAG 2.2 AA violations identified in the report. Most are straightforward CSS and HTML fixes.
 
 4. **Add missing media features**: If captions or audio description are missing from manifests, work with your encoding pipeline to add them.
 
@@ -135,7 +135,7 @@ Enforcement is ramping up throughout 2026 as national authorities establish thei
 
 The standard is extensive, covering everything from hardware to software to web content to documentation. For streaming services, the relevant sections are Clause 7 (ICT with video capabilities), Clause 9 (Web), Clause 10 (Non-web documents, if applicable), and Clause 11 (Software, for native apps).
 
-EN 301 549 Clause 9 maps directly to WCAG 2.1 Level AA success criteria, using the same numbering. Clause 9.1.1.1 corresponds to WCAG 1.1.1 (Non-text Content), Clause 9.2.4.7 corresponds to WCAG 2.4.7 (Focus Visible), and so on. This mapping makes it straightforward to use existing WCAG testing tools for Clause 9 compliance.
+EN 301 549 Clause 9 maps directly to WCAG 2.2 Level AA success criteria, using the same numbering. Clause 9.1.1.1 corresponds to WCAG 1.1.1 (Non-text Content), Clause 9.2.4.7 corresponds to WCAG 2.4.7 (Focus Visible), and so on. This mapping makes it straightforward to use existing WCAG testing tools for Clause 9 compliance.
 
 Clause 7, however, has no WCAG equivalent. These requirements are unique to media services and require specialised testing that most accessibility tools don't provide.`
       },
@@ -170,8 +170,8 @@ Controls for captions and audio description must be at the same level as primary
 All player controls must meet accessibility standards: proper ARIA labelling (7.4.1), visible focus indicators (7.4.2), sufficient colour contrast (7.4.3), and adequate touch target sizes (7.4.4).`
       },
       {
-        heading: 'Clause 9: Web Content (WCAG 2.1 AA)',
-        content: `Clause 9 requires all web content to meet WCAG 2.1 Level AA. For streaming services, this applies to every page: the homepage, browse/search interfaces, account management, subscription flows, and the video player page itself. Key areas include:
+        heading: 'Clause 9: Web Content (WCAG 2.2 AA)',
+        content: `Clause 9 requires all web content to meet WCAG 2.2 Level AA. For streaming services, this applies to every page: the homepage, browse/search interfaces, account management, subscription flows, and the video player page itself. Key areas include:
 
 **Perceivable (1.x)**: All non-text content needs text alternatives. Colour cannot be the sole means of conveying information. Text must have 4.5:1 contrast ratio. Content must reflow at 320px width without horizontal scrolling.
 
@@ -200,7 +200,7 @@ EAA Stream Checker intercepts HLS and DASH manifests during scanning and parses 
         content: `Testing EN 301 549 for streaming services requires a combination of automated and manual methods:
 
 **Automated testing (what EAA Stream Checker does)**:
-- WCAG 2.1 AA audit using axe-core (covers all of Clause 9)
+- WCAG 2.2 AA audit using axe-core (covers all of Clause 9)
 - Video player detection and control accessibility testing
 - HLS/DASH manifest interception and parsing
 - Caption file download and quality analysis
