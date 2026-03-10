@@ -24,6 +24,7 @@ interface Clause {
   findings: Finding[];
   recommendation?: string;
   helpText?: string;
+  wcagMapping?: string;
   wcag22Only?: boolean;
 }
 
@@ -115,6 +116,7 @@ export async function reportRoutes(app: FastifyInstance, store: AuditStore) {
           status: violations.length > 0 ? ("fail" as const) : ("pass" as const),
           findings,
           helpText: clause.helpText,
+          ...(clause.wcagMapping && { wcagMapping: clause.wcagMapping }),
           ...(clause.wcag22Only && { wcag22Only: true }),
         };
       }

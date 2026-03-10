@@ -42,6 +42,11 @@ export function ClauseSection({ clause, change }: { clause: Clause; change?: 're
             <span className="font-mono text-sm font-semibold text-brand-600 dark:text-brand-300 shrink-0">
               {clause.clauseId}
             </span>
+            {clause.wcagMapping && (
+              <span className="shrink-0 rounded-md bg-slate-200/50 dark:bg-slate-700/50 px-1.5 py-0.5 text-[10px] font-mono font-medium text-slate-500 dark:text-slate-400">
+                WCAG {clause.wcagMapping}
+              </span>
+            )}
             <span className="min-w-0">
               <span className="text-slate-700 dark:text-slate-300 text-sm truncate block">{clause.title}</span>
               {clause.helpText && (

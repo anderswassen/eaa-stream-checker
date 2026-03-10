@@ -14,6 +14,7 @@ export interface Clause {
   findings: Finding[];
   recommendation?: string;
   helpText?: string;
+  wcagMapping?: string;
   wcag22Only?: boolean;
 }
 
