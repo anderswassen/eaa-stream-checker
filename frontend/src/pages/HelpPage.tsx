@@ -199,8 +199,8 @@ export function HelpPage() {
                 desc: 'Each scan produces a 0-100 compliance score. Over time, track average, best, and worst scores per URL. The score API provides trend data for dashboards and reporting.',
               },
               {
-                title: 'Exportable compliance reports (PDF, JSON, VPAT)',
-                desc: 'Reports can be exported as PDF for documentation, JSON for integration with internal systems, or as a VPAT 2.5 EU Edition — the industry-standard Accessibility Conformance Report format used for procurement and regulatory submissions.',
+                title: 'Exportable compliance reports (PDF, JSON, VPAT, Accessibility Statement)',
+                desc: 'Reports can be exported as PDF for documentation, JSON for integration with internal systems, VPAT 2.5 EU Edition for procurement and regulatory submissions, or as a pre-filled HTML Accessibility Statement ready to customise and publish on your site.',
               },
             ].map((item) => (
               <li key={item.title} className="flex gap-3">
@@ -286,7 +286,7 @@ export function HelpPage() {
               { step: '3', text: 'The tool loads your site in a headless browser, runs WCAG 2.1 & 2.2 AA checks, analyses the video player, streaming manifests, captions, DRM, and embedded iframes.' },
               { step: '4', text: 'Review the compliance report. Each finding is categorised by EN 301 549 clause, severity, and status (pass, fail, or needs review). Look for Regression and Fixed badges that highlight what changed since the last scan.' },
               { step: '5', text: 'Check the "Changes Since Last Scan" summary at the top of the report to quickly see regressions, fixes, and new issues compared to the previous scan.' },
-              { step: '6', text: 'Export as PDF for documentation, JSON for internal systems, or VPAT 2.5 EU Edition for procurement and regulatory submissions.' },
+              { step: '6', text: 'Export as PDF for documentation, JSON for internal systems, VPAT 2.5 EU Edition for procurement and regulatory submissions, or an Accessibility Statement HTML file to publish on your site.' },
               { step: '7', text: 'Address the identified issues and re-scan to verify remediation. When connected to PostgreSQL, every scan is saved automatically.' },
               { step: '8', text: 'Monitor compliance from the home page dashboard. Domains are colour-coded by health (green/yellow/red), show trend arrows, and flag stale scans older than 7 days. Sort by worst score to prioritise.' },
               { step: '9', text: 'Use the History page to track compliance over time. Search by domain or URL to see score trends, improvements, and regressions across all scans.' },
