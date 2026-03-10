@@ -1,5 +1,6 @@
 import { useState, createContext, useContext } from 'react';
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
+import { lazy, Suspense } from 'react';
 import { ScanPage } from './pages/ScanPage';
 import { ReportPage } from './pages/ReportPage';
 import { HelpPage } from './pages/HelpPage';
@@ -7,12 +8,15 @@ import { HistoryPage } from './pages/HistoryPage';
 import { PrivacyPage } from './pages/PrivacyPage';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 
+const GuidePage = lazy(() => import('./pages/GuidePage').then(m => ({ default: m.GuidePage })));
+const GuidesIndexPage = lazy(() => import('./pages/GuidesIndexPage').then(m => ({ default: m.GuidesIndexPage })));
+
 // Scan state context for reactive ambient background
 type ScanState = 'idle' | 'scanning' | 'passing' | 'failing';
 const ScanStateContext = createContext<{ state: ScanState; setState: (s: ScanState) => void }>({ state: 'idle', setState: () => {} });
 export function useScanState() { return useContext(ScanStateContext); }
 
-const APP_VERSION = '0.7.5';
+const APP_VERSION = '0.8.0';
 
 function ThemeToggle() {
   const { theme, toggleTheme } = useTheme();
@@ -81,6 +85,12 @@ function AppContent() {
                 History
               </Link>
               <Link
+                to="/guides"
+                className="text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors focus:outline-2 focus:outline-offset-2 focus:outline-brand-400 rounded"
+              >
+                Guides
+              </Link>
+              <Link
                 to="/help"
                 className="text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors focus:outline-2 focus:outline-offset-2 focus:outline-brand-400 rounded"
               >
@@ -94,13 +104,17 @@ function AppContent() {
           </nav>
         </header>
 
-        <Routes>
-          <Route path="/" element={<ScanPage />} />
-          <Route path="/report/:id" element={<ReportPage />} />
-          <Route path="/history" element={<HistoryPage />} />
-          <Route path="/help" element={<HelpPage />} />
-          <Route path="/privacy" element={<PrivacyPage />} />
-        </Routes>
+        <Suspense fallback={null}>
+          <Routes>
+            <Route path="/" element={<ScanPage />} />
+            <Route path="/report/:id" element={<ReportPage />} />
+            <Route path="/history" element={<HistoryPage />} />
+            <Route path="/help" element={<HelpPage />} />
+            <Route path="/privacy" element={<PrivacyPage />} />
+            <Route path="/guides" element={<GuidesIndexPage />} />
+            <Route path="/guide/:slug" element={<GuidePage />} />
+          </Routes>
+        </Suspense>
 
         <footer className="border-t border-slate-200/50 dark:border-slate-800/50 py-6 text-center">
           <div className="mx-auto max-w-6xl px-6 flex flex-col sm:flex-row items-center justify-between gap-3">

@@ -3,6 +3,7 @@ import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { getHistory, getVersion, getRecentDomains } from '../api/client';
 import type { DomainHistoryScan, DomainSummary, HistoryResponse } from '../api/client';
+import { SEO } from '../components/SEO';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 16 },
@@ -206,6 +207,12 @@ export function HistoryPage() {
 
   return (
     <main id="main-content" className="flex-1 px-4 py-8">
+      <SEO
+        title="Scan History"
+        description="Track EAA compliance over time. View historical scan results, score trends, and regressions across all monitored streaming domains."
+        path="/history"
+        noindex
+      />
       <div className="max-w-5xl mx-auto space-y-8">
         <motion.div variants={fadeUp} initial="hidden" animate="show" className="space-y-2">
           <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white">

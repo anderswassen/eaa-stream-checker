@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { SEO } from '../components/SEO';
 
 const stagger = {
   hidden: {},
@@ -13,6 +14,11 @@ const fadeUp = {
 export function HelpPage() {
   return (
     <main id="main-content" className="flex-1 px-4 py-12">
+      <SEO
+        title="Help & EN 301 549 Regulatory Context"
+        description="How EAA Stream Checker works, what EN 301 549 requires for streaming services, Clause 7 video checks, WCAG 2.1 AA audit details, and key European Accessibility Act regulatory dates."
+        path="/help"
+      />
       <motion.div
         className="max-w-3xl mx-auto space-y-10"
         variants={stagger}

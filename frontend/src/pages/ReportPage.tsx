@@ -9,6 +9,7 @@ import { ScoreGauge } from '../components/ScoreGauge';
 import { RadarChart } from '../components/RadarChart';
 import { FilterBar } from '../components/FilterBar';
 import { ReportTOC } from '../components/ReportTOC';
+import { SEO } from '../components/SEO';
 import { exportPdf } from '../utils/pdfExport';
 import { exportVpat } from '../utils/vpatExport';
 
@@ -185,6 +186,12 @@ export function ReportPage() {
 
   return (
     <main id="main-content" className="flex-1 px-4 py-8">
+      <SEO
+        title={`Compliance Report — ${report.url}`}
+        description={`EN 301 549 compliance report for ${report.url}. Score: ${computeScore(report.summary)}/100, ${report.summary.passed} passed, ${report.summary.failed} failed.`}
+        path={`/report/${id}`}
+        noindex
+      />
       <div className="max-w-7xl mx-auto">
         <motion.div
           variants={stagger}

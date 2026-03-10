@@ -1,4 +1,6 @@
 User-agent: *
 Allow: /
+Disallow: /report/
+Disallow: /history
 
 Sitemap: https://www.eaachecker.net/sitemap.xml

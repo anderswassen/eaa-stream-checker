@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { SEO } from '../components/SEO';
 
 const stagger = {
   hidden: {},
@@ -13,6 +14,11 @@ const fadeUp = {
 export function PrivacyPage() {
   return (
     <main id="main-content" className="flex-1 px-4 py-12">
+      <SEO
+        title="Privacy & Data Policy"
+        description="EAA Stream Checker privacy policy. Learn how we handle your data, what we store, and how scans work. No cookies, no tracking, no third-party data sharing."
+        path="/privacy"
+      />
       <motion.div
         className="max-w-3xl mx-auto space-y-10"
         variants={stagger}
