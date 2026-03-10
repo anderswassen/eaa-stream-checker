@@ -1,7 +1,8 @@
 import type { EN301549Clause } from "../types/audit.js";
 
-// EN 301 549 Clause 9 maps directly to WCAG 2.2 Level AA success criteria.
+// EN 301 549 Clause 9 maps directly to WCAG 2.1 Level AA success criteria.
 // The clause numbering mirrors WCAG: EN 301 549 clause 9.X.Y.Z corresponds to WCAG X.Y.Z.
+// Criteria marked wcag22Only are new in WCAG 2.2 and not yet referenced by EN 301 549 v3.2.1.
 
 const clause9Mappings: Record<string, EN301549Clause> = {
   // Principle 1: Perceivable

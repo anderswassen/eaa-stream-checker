@@ -285,7 +285,8 @@ export async function exportVpat(report: ScanReport) {
       // Title (truncated)
       pdf.setFont('helvetica', 'normal');
       pdf.setTextColor(...COLORS.slate700);
-      const titleLines = pdf.splitTextToSize(clause.title, colWidths[1] - 4);
+      const vpatTitleSuffix = clause.wcag22Only ? ' (WCAG 2.2)' : '';
+      const titleLines = pdf.splitTextToSize(clause.title + vpatTitleSuffix, colWidths[1] - 4);
       pdf.text(titleLines[0], colX[1] + 2, y);
 
       // Conformance level (colored)

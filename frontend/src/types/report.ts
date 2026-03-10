@@ -14,6 +14,7 @@ export interface Clause {
   findings: Finding[];
   recommendation?: string;
   helpText?: string;
+  wcag22Only?: boolean;
 }
 
 export interface PageScanned {

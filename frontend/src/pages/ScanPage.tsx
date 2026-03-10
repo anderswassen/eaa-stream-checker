@@ -185,7 +185,7 @@ export function ScanPage() {
     <main id="main-content" className="flex-1 flex items-center justify-center px-4 gradient-mesh">
       <SEO
         title="EAA Compliance Checker — European Accessibility Act & EN 301 549 Scanner"
-        description="Free EAA compliance checker for streaming services. Test your site against the European Accessibility Act (Directive 2019/882) and EN 301 549 in 30 seconds. Automated WCAG 2.2 AA audit, caption checks, audio description, player accessibility — full compliance report."
+        description="Free EAA compliance checker for streaming services. Test your site against the European Accessibility Act (Directive 2019/882) and EN 301 549 in 30 seconds. Automated WCAG 2.2 AA audit, caption checks, audio description, player accessibility — full compliance report with PDF, VPAT, and accessibility statement export."
         path="/"
       />
       <div className="w-full max-w-2xl space-y-10 text-center py-16">

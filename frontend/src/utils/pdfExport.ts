@@ -282,7 +282,8 @@ export async function exportPdf(report: ScanReport) {
       pdf.text(clause.clauseId, MARGIN + 18, y);
       pdf.setFont('helvetica', 'normal');
       pdf.setTextColor(71, 85, 105);
-      const titleText = pdf.splitTextToSize(`— ${clause.title}`, CONTENT_WIDTH - 40);
+      const titleSuffix = clause.wcag22Only ? ' (WCAG 2.2)' : '';
+      const titleText = pdf.splitTextToSize(`— ${clause.title}${titleSuffix}`, CONTENT_WIDTH - 40);
       pdf.text(titleText[0], MARGIN + 28, y);
       y += 6;
 

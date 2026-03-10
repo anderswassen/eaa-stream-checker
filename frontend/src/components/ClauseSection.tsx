@@ -34,6 +34,11 @@ export function ClauseSection({ clause, change }: { clause: Clause; change?: 're
                 {changeBadgeConfig[change].label}
               </span>
             )}
+            {clause.wcag22Only && (
+              <span className="shrink-0 rounded-md ring-1 ring-inset px-1.5 py-0.5 text-[10px] font-semibold tracking-wide bg-violet-500/15 text-violet-300 ring-violet-500/20" title="WCAG 2.2 — not yet required by EN 301 549 but recommended">
+                WCAG 2.2
+              </span>
+            )}
             <span className="font-mono text-sm font-semibold text-brand-600 dark:text-brand-300 shrink-0">
               {clause.clauseId}
             </span>

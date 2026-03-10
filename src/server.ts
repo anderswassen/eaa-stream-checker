@@ -17,7 +17,7 @@ import { closeBrowser } from "./services/crawler.js";
 const HOST = process.env.HOST ?? "0.0.0.0";
 const PORT = parseInt(process.env.PORT ?? "8080", 10);
 const GIT_SHA = process.env.GIT_SHA ?? "dev";
-const APP_VERSION = "0.9.0";
+const APP_VERSION = "0.9.1";
 const DATABASE_URL = process.env.DATABASE_URL;
 
 const app = Fastify({
@@ -100,7 +100,7 @@ if (existsSync(frontendDist)) {
   const routeMeta: Record<string, RouteMeta> = {
     "/": {
       title: "EAA Compliance Checker — European Accessibility Act & EN 301 549 Scanner",
-      description: "Free EAA compliance checker for streaming services. Test your site against the European Accessibility Act (Directive 2019/882) and EN 301 549 in 30 seconds. Automated WCAG 2.2 AA audit, caption checks, audio description, player accessibility — full compliance report.",
+      description: "Free EAA compliance checker for streaming services. Test your site against the European Accessibility Act (Directive 2019/882) and EN 301 549 in 30 seconds. Automated WCAG 2.2 AA audit, caption checks, audio description, player accessibility — full compliance report with PDF, VPAT, and accessibility statement export.",
       canonical: "https://www.eaachecker.net/",
     },
     "/guides": {
