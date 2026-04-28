@@ -6,12 +6,14 @@ import { mapWcagCriteriaToClauseIds } from "../mappings/en301549.js";
 import { screenshotElement } from "./crawler.js";
 
 const DEFAULT_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];
+const AXE_TIMEOUT_MS = 90000;
 
 export interface AnalysisResult {
   violations: AuditViolation[];
   passes: number;
   incomplete: number;
   inapplicable: number;
+  colorContrastSkipped: boolean;
 }
 
 /**
@@ -38,20 +40,49 @@ function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise
   ]);
 }
 
+function buildAxe(page: Page, tags: string[], disableColorContrast: boolean): AxeBuilder {
+  const axe = new AxeBuilder({ page })
+    .withTags(tags)
+    .exclude("iframe")
+    .exclude("[aria-hidden='true']");
+  if (disableColorContrast) {
+    // color-contrast is the slowest axe rule by far — disable it on heavy pages so we don't time out.
+    axe.disableRules(["color-contrast"]);
+  }
+  return axe;
+}
+
 /**
  * Run axe-core accessibility analysis on a Playwright page.
+ * On timeout, retries once with color-contrast disabled (the slowest rule on heavy DOMs).
  */
 export async function analyzePage(
   page: Page,
   tags?: string[],
-  options?: { captureScreenshots?: boolean; pageUrl?: string }
+  options?: { captureScreenshots?: boolean; pageUrl?: string; disableColorContrast?: boolean }
 ): Promise<AnalysisResult> {
-  const axe = new AxeBuilder({ page })
-    .withTags(tags ?? DEFAULT_TAGS)
-    .exclude("iframe")        // Skip iframes (ads, embeds) — they're slow and often third-party
-    .exclude("[aria-hidden='true']"); // Skip hidden content
+  const effectiveTags = tags ?? DEFAULT_TAGS;
+  let colorContrastSkipped = options?.disableColorContrast ?? false;
 
-  const results: AxeResults = await withTimeout(axe.analyze(), 45000, "axe-core analysis");
+  let results: AxeResults;
+  try {
+    results = await withTimeout(
+      buildAxe(page, effectiveTags, colorContrastSkipped).analyze(),
+      AXE_TIMEOUT_MS,
+      "axe-core analysis"
+    );
+  } catch (err) {
+    const isTimeout = err instanceof Error && err.message.includes("timed out");
+    if (!isTimeout || colorContrastSkipped) throw err;
+    console.warn(`[analyzer] axe-core timed out after ${AXE_TIMEOUT_MS / 1000}s; retrying without color-contrast`);
+    colorContrastSkipped = true;
+    results = await withTimeout(
+      buildAxe(page, effectiveTags, true).analyze(),
+      AXE_TIMEOUT_MS,
+      "axe-core analysis"
+    );
+  }
+
   const doScreenshots = options?.captureScreenshots ?? true;
 
   const violations: AuditViolation[] = [];
@@ -97,5 +128,6 @@ export async function analyzePage(
     passes: results.passes.length,
     incomplete: results.incomplete.length,
     inapplicable: results.inapplicable.length,
+    colorContrastSkipped,
   };
 }

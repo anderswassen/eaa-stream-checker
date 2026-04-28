@@ -41,6 +41,7 @@ interface FrontendScanReport {
   status: "completed" | "in_progress" | "failed";
   deepScan?: boolean;
   pagesScanned?: PageScanned[];
+  warnings?: string[];
   summary: {
     totalChecks: number;
     passed: number;
@@ -171,6 +172,7 @@ export async function reportRoutes(app: FastifyInstance, store: AuditStore) {
         title: p.title,
         violationCount: p.violationCount,
       })),
+      ...(audit.warnings && audit.warnings.length > 0 && { warnings: audit.warnings }),
       summary: {
         totalChecks: allClauses.length,
         passed,

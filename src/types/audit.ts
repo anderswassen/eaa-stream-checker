@@ -48,6 +48,7 @@ export interface AuditResult {
   streaming?: import("../services/streaming/types.js").StreamingAnalysisResult;
   deepScan?: boolean;
   pagesScanned?: PageResult[];
+  warnings?: string[];
 }
 
 export interface EN301549Clause {

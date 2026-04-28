@@ -394,6 +394,25 @@ export function ReportPage() {
             </div>
           </motion.section>
 
+          {/* Scan warnings (e.g. color-contrast skipped on heavy pages) */}
+          {report.warnings && report.warnings.length > 0 && (
+            <motion.section variants={fadeUp} className="space-y-3">
+              <div className="glass rounded-xl p-4 ring-1 ring-yellow-500/20 bg-yellow-500/5">
+                <div className="flex gap-3">
+                  <svg className="h-5 w-5 shrink-0 text-yellow-400 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                  </svg>
+                  <div className="space-y-1.5 text-sm text-slate-700 dark:text-slate-200">
+                    <p className="font-semibold text-yellow-400">Partial scan</p>
+                    {report.warnings.map((w, i) => (
+                      <p key={i}>{w}</p>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </motion.section>
+          )}
+
           {/* Pages scanned (deep scan) */}
           {report.deepScan && report.pagesScanned && report.pagesScanned.length > 1 && (
             <motion.section variants={fadeUp} className="space-y-3">

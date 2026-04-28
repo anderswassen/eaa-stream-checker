@@ -31,6 +31,7 @@ export interface ScanReport {
   status: 'completed' | 'in_progress' | 'failed';
   deepScan?: boolean;
   pagesScanned?: PageScanned[];
+  warnings?: string[];
   summary: {
     totalChecks: number;
     passed: number;

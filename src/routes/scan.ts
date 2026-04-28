@@ -182,6 +182,14 @@ async function runScan(
     audit.incomplete = analysis.incomplete;
     audit.inapplicable = analysis.inapplicable;
 
+    let colorContrastSkipped = analysis.colorContrastSkipped;
+    if (colorContrastSkipped) {
+      audit.warnings = [
+        ...(audit.warnings ?? []),
+        "Color-contrast checks were skipped because the page was too large to analyze within the time limit. All other WCAG checks ran normally.",
+      ];
+    }
+
     emitScanProgress(id, {
       type: "web_complete",
       passed: analysis.passes,
@@ -256,7 +264,15 @@ async function runScan(
           const pageAnalysis = await analyzePage(pageCrawl.page, options.tags, {
             captureScreenshots: true,
             pageUrl,
+            disableColorContrast: colorContrastSkipped,
           });
+          if (pageAnalysis.colorContrastSkipped && !colorContrastSkipped) {
+            colorContrastSkipped = true;
+            audit.warnings = [
+              ...(audit.warnings ?? []),
+              "Color-contrast checks were skipped because the page was too large to analyze within the time limit. All other WCAG checks ran normally.",
+            ];
+          }
 
           // Merge violations: add new ones, skip duplicates by id+target
           const existingKeys = new Set(
