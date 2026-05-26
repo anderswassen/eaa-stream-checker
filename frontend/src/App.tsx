@@ -17,7 +17,7 @@ type ScanState = 'idle' | 'scanning' | 'passing' | 'failing';
 const ScanStateContext = createContext<{ state: ScanState; setState: (s: ScanState) => void }>({ state: 'idle', setState: () => {} });
 export function useScanState() { return useContext(ScanStateContext); }
 
-const APP_VERSION = '0.9.4';
+const APP_VERSION = '0.9.5';
 
 function ThemeToggle() {
   const { theme, toggleTheme } = useTheme();
@@ -72,10 +72,22 @@ function AppContent() {
           >
             <Link
               to="/"
-              className="flex items-center gap-3 group focus:outline-2 focus:outline-offset-2 focus:outline-brand-400 rounded-lg"
+              aria-label="EAA Stream Checker — home"
+              className="flex items-center gap-2.5 group rounded-xl focus:outline-2 focus:outline-offset-4 focus:outline-brand-400"
             >
-              <span className="text-sm font-semibold text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">
-                EAA Stream Checker
+              <span className="relative grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-brand-500 to-cyan-500 shadow-lg shadow-brand-500/30 transition-all duration-300 group-hover:scale-105 group-hover:shadow-brand-500/50">
+                <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" aria-hidden="true">
+                  <path d="M9 7.2v9.6a.8.8 0 0 0 1.23.67l7.4-4.8a.8.8 0 0 0 0-1.34l-7.4-4.8A.8.8 0 0 0 9 7.2Z" fill="white" />
+                </svg>
+                <span className="absolute -bottom-1 -right-1 grid h-[15px] w-[15px] place-items-center rounded-full bg-emerald-500 ring-2 ring-white dark:ring-surface-900">
+                  <svg viewBox="0 0 12 12" className="h-2.5 w-2.5" aria-hidden="true">
+                    <path d="M2.4 6.2 4.7 8.5 9.6 3.4" fill="none" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </span>
+              </span>
+              <span className="text-[15px] font-bold leading-none tracking-tight">
+                <span className="bg-gradient-to-r from-brand-600 to-cyan-500 bg-clip-text text-transparent">EAA</span>
+                <span className="text-slate-800 dark:text-slate-100"> Stream Checker</span>
               </span>
             </Link>
             <div className="flex items-center gap-3">
